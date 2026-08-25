@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adfvbecommercedev"
+		},
+		"LS_AZSQL_CONTROL_password": {
+			"value": ""
+		},
+		"LS_ADLS_ECOMMERCE_properties_typeProperties_url": {
+			"value": "https://adlsvbecommercedev.dfs.core.windows.net/"
+		},
+		"LS_AZSQL_CONTROL_properties_typeProperties_server": {
+			"value": "sql-vb-ecommerce-dev-01.database.windows.net"
+		},
+		"LS_AZSQL_CONTROL_properties_typeProperties_database": {
+			"value": "sqldb-vb-ecommerce-dev"
+		},
+		"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
+			"value": "sqladminvb"
+		}
+	}
+}

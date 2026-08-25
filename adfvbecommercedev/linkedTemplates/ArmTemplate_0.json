@@ -1,0 +1,897 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adfvbecommercedev"
+		},
+		"LS_AZSQL_CONTROL_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_AZSQL_CONTROL'"
+		},
+		"LS_ADLS_ECOMMERCE_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://adlsvbecommercedev.dfs.core.windows.net/"
+		},
+		"LS_AZSQL_CONTROL_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sql-vb-ecommerce-dev-01.database.windows.net"
+		},
+		"LS_AZSQL_CONTROL_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "sqldb-vb-ecommerce-dev"
+		},
+		"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sqladminvb"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_ADLS_ECOMMERCE')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('LS_ADLS_ECOMMERCE_properties_typeProperties_url')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_AZSQL_CONTROL')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('LS_AZSQL_CONTROL_properties_typeProperties_server')]",
+					"database": "[parameters('LS_AZSQL_CONTROL_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_AZSQL_CONTROL_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_AZSQL_CONTROL_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_CSV_SOURCE')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_ECOMMERCE",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"p_folder_path": {
+						"type": "string"
+					},
+					"p_file_name": {
+						"type": "string"
+					},
+					"p_container": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@dataset().p_folder_path",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().p_container",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "order_id",
+						"type": "String"
+					},
+					{
+						"name": "customer_id",
+						"type": "String"
+					},
+					{
+						"name": "product_id",
+						"type": "String"
+					},
+					{
+						"name": "order_date",
+						"type": "String"
+					},
+					{
+						"name": "quantity",
+						"type": "String"
+					},
+					{
+						"name": "amount",
+						"type": "String"
+					},
+					{
+						"name": "status",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_ECOMMERCE')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_EXCEL_SOURCE')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_ECOMMERCE",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"p_container": {
+						"type": "string"
+					},
+					"p_folder_path": {
+						"type": "string"
+					},
+					"p_file_name": {
+						"type": "string"
+					},
+					"p_sheet_name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": {
+						"value": "@dataset().p_sheet_name",
+						"type": "Expression"
+					},
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().p_file_name",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().p_folder_path",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().p_container",
+							"type": "Expression"
+						}
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_ECOMMERCE')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_PARQUET_SINK')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_ECOMMERCE",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"p_container": {
+						"type": "string"
+					},
+					"p_folder_path": {
+						"type": "string"
+					},
+					"p_file_name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().p_file_name",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().p_folder_path",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().p_container",
+							"type": "Expression"
+						}
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_ECOMMERCE')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_SQL_CONTROL')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AZSQL_CONTROL",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AZSQL_CONTROL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_MASTER_INGESTION')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup_Get_Job_Metadata",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "@concat(\n    'EXEC dbo.vb_get_job_config @job_id = ',\n    string(pipeline().parameters.p_job_id)\n)",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "DS_SQL_CONTROL",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "Switch_Source_Type",
+						"type": "Switch",
+						"dependsOn": [
+							{
+								"activity": "SP_Start_Log",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"on": {
+								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_type",
+								"type": "Expression"
+							},
+							"cases": [
+								{
+									"value": "CSV",
+									"activities": [
+										{
+											"name": "Copy_CSV_To_Landing",
+											"type": "Copy",
+											"dependsOn": [],
+											"policy": {
+												"timeout": "0.12:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"source": {
+													"type": "DelimitedTextSource",
+													"storeSettings": {
+														"type": "AzureBlobFSReadSettings",
+														"recursive": true,
+														"wildcardFolderPath": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+															"type": "Expression"
+														},
+														"wildcardFileName": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+															"type": "Expression"
+														},
+														"enablePartitionDiscovery": false
+													},
+													"formatSettings": {
+														"type": "DelimitedTextReadSettings"
+													}
+												},
+												"sink": {
+													"type": "ParquetSink",
+													"storeSettings": {
+														"type": "AzureBlobFSWriteSettings"
+													},
+													"formatSettings": {
+														"type": "ParquetWriteSettings"
+													}
+												},
+												"enableStaging": false,
+												"translator": {
+													"type": "TabularTranslator",
+													"typeConversion": true,
+													"typeConversionSettings": {
+														"allowDataTruncation": true,
+														"treatBooleanAsNumber": false
+													}
+												}
+											},
+											"inputs": [
+												{
+													"referenceName": "DS_ADLS_CSV_SOURCE",
+													"type": "DatasetReference",
+													"parameters": {
+														"p_folder_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+														"p_file_name": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+															"type": "Expression"
+														},
+														"p_container": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
+															"type": "Expression"
+														}
+													}
+												}
+											],
+											"outputs": [
+												{
+													"referenceName": "DS_ADLS_PARQUET_SINK",
+													"type": "DatasetReference",
+													"parameters": {
+														"p_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+														"p_folder_path": "@concat(     activity('Lookup_Get_Job_Metadata').output.value[0].target_path,     '/',     formatDateTime(utcnow(),'yyyy/MM/dd') )",
+														"p_file_name": "@concat(     split(         activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern,         '_*'     )[0],     '_',     formatDateTime(utcnow(),'ddMMyyyy'),     '.parquet' )"
+													}
+												}
+											]
+										},
+										{
+											"name": "SP_End_Log_Success_CSV",
+											"type": "SqlServerStoredProcedure",
+											"dependsOn": [
+												{
+													"activity": "Copy_CSV_To_Landing",
+													"dependencyConditions": [
+														"Succeeded"
+													]
+												}
+											],
+											"policy": {
+												"timeout": "0.12:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"storedProcedureName": "[[dbo].[vb_end_log_entry]",
+												"storedProcedureParameters": {
+													"error": {
+														"value": "'NULL'",
+														"type": "String"
+													},
+													"job_id": {
+														"value": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+															"type": "Expression"
+														},
+														"type": "Int32"
+													},
+													"job_status": {
+														"value": "'SUCCESS'",
+														"type": "String"
+													},
+													"pipeline_run_id": {
+														"value": {
+															"value": "@pipeline().RunId",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"records_read": {
+														"value": {
+															"value": "@activity('Copy_CSV_To_Landing').output.rowsRead",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													},
+													"records_written": {
+														"value": {
+															"value": "@activity('Copy_CSV_To_Landing').output.rowsCopied",
+															"type": "Expression"
+														},
+														"type": "Int64"
+													},
+													"source_file": {
+														"value": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"target_path": {
+														"value": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+															"type": "Expression"
+														},
+														"type": "String"
+													}
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "LS_AZSQL_CONTROL",
+												"type": "LinkedServiceReference"
+											}
+										},
+										{
+											"name": "SP_End_Log_Failure_CSV",
+											"type": "SqlServerStoredProcedure",
+											"dependsOn": [
+												{
+													"activity": "Copy_CSV_To_Landing",
+													"dependencyConditions": [
+														"Failed"
+													]
+												}
+											],
+											"policy": {
+												"timeout": "0.12:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"storedProcedureName": "[[dbo].[vb_end_log_entry]",
+												"storedProcedureParameters": {
+													"error": {
+														"value": {
+															"value": "@activity('Copy_CSV_To_Landing').error.message",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"job_id": {
+														"value": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+															"type": "Expression"
+														},
+														"type": "Int32"
+													},
+													"job_status": {
+														"value": "'FAILED'",
+														"type": "String"
+													},
+													"pipeline_run_id": {
+														"value": {
+															"value": "@pipeline().RunId",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"records_read": {
+														"value": "'NULL'",
+														"type": "String"
+													},
+													"records_written": {
+														"value": "'NULL'",
+														"type": "String"
+													},
+													"source_file": {
+														"value": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"target_path": {
+														"value": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+															"type": "Expression"
+														},
+														"type": "String"
+													}
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "LS_AZSQL_CONTROL",
+												"type": "LinkedServiceReference"
+											}
+										}
+									]
+								},
+								{
+									"value": "EXCEL",
+									"activities": [
+										{
+											"name": "Copy_EXCEL_To_Landing",
+											"type": "Copy",
+											"dependsOn": [],
+											"policy": {
+												"timeout": "0.12:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"source": {
+													"type": "ExcelSource",
+													"storeSettings": {
+														"type": "AzureBlobFSReadSettings",
+														"recursive": true,
+														"wildcardFolderPath": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+															"type": "Expression"
+														},
+														"wildcardFileName": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+															"type": "Expression"
+														},
+														"enablePartitionDiscovery": false
+													}
+												},
+												"sink": {
+													"type": "ParquetSink",
+													"storeSettings": {
+														"type": "AzureBlobFSWriteSettings"
+													},
+													"formatSettings": {
+														"type": "ParquetWriteSettings"
+													}
+												},
+												"enableStaging": false,
+												"translator": {
+													"type": "TabularTranslator",
+													"typeConversion": true,
+													"typeConversionSettings": {
+														"allowDataTruncation": true,
+														"treatBooleanAsNumber": false
+													}
+												}
+											},
+											"inputs": [
+												{
+													"referenceName": "DS_ADLS_EXCEL_SOURCE",
+													"type": "DatasetReference",
+													"parameters": {
+														"p_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
+														"p_folder_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+														"p_file_name": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+														"p_sheet_name": "@activity('Lookup_Get_Job_Metadata').output.value[0].sheet_name"
+													}
+												}
+											],
+											"outputs": [
+												{
+													"referenceName": "DS_ADLS_PARQUET_SINK",
+													"type": "DatasetReference",
+													"parameters": {
+														"p_container": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+															"type": "Expression"
+														},
+														"p_folder_path": {
+															"value": "@concat(\n    activity('Lookup_Get_Job_Metadata').output.value[0].target_path,\n    '/',\n    formatDateTime(utcnow(),'yyyy/MM/dd')\n)",
+															"type": "Expression"
+														},
+														"p_file_name": {
+															"value": "@concat(\n    split(\n        activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern,\n        '_*'\n    )[0],\n    '_',\n    formatDateTime(utcnow(),'ddMMyyyy'),\n    '.parquet'\n)",
+															"type": "Expression"
+														}
+													}
+												}
+											]
+										},
+										{
+											"name": "SP_End_Log_Failure_Excel",
+											"type": "SqlServerStoredProcedure",
+											"dependsOn": [
+												{
+													"activity": "Copy_EXCEL_To_Landing",
+													"dependencyConditions": [
+														"Failed"
+													]
+												}
+											],
+											"policy": {
+												"timeout": "0.12:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"storedProcedureName": "[[dbo].[vb_end_log_entry]",
+												"storedProcedureParameters": {
+													"error": {
+														"value": {
+															"value": "@activity('Copy_EXCEL_To_Landing').error.message",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"job_id": {
+														"value": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+															"type": "Expression"
+														},
+														"type": "Int32"
+													},
+													"job_status": {
+														"value": "'FAILED'",
+														"type": "String"
+													},
+													"pipeline_run_id": {
+														"value": {
+															"value": "@pipeline().RunId",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"records_read": {
+														"value": "'NULL'",
+														"type": "String"
+													},
+													"records_written": {
+														"value": "'NULL'",
+														"type": "String"
+													},
+													"source_file": {
+														"value": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"target_path": {
+														"value": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+															"type": "Expression"
+														},
+														"type": "String"
+													}
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "LS_AZSQL_CONTROL",
+												"type": "LinkedServiceReference"
+											}
+										},
+										{
+											"name": "SP_End_Log_Success_Excel",
+											"type": "SqlServerStoredProcedure",
+											"dependsOn": [
+												{
+													"activity": "Copy_EXCEL_To_Landing",
+													"dependencyConditions": [
+														"Succeeded"
+													]
+												}
+											],
+											"policy": {
+												"timeout": "0.12:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
+											"userProperties": [],
+											"typeProperties": {
+												"storedProcedureName": "[[dbo].[vb_end_log_entry]",
+												"storedProcedureParameters": {
+													"error": {
+														"value": "'NULL'",
+														"type": "String"
+													},
+													"job_id": {
+														"value": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+															"type": "Expression"
+														},
+														"type": "Int32"
+													},
+													"job_status": {
+														"value": "'SUCCESS'",
+														"type": "String"
+													},
+													"pipeline_run_id": {
+														"value": {
+															"value": "@pipeline().RunId",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"records_read": {
+														"value": {
+															"value": "@activity('Copy_EXCEL_To_Landing').output.rowsRead",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"records_written": {
+														"value": {
+															"value": "@activity('Copy_EXCEL_To_Landing').output.rowsCopied",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"source_file": {
+														"value": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+															"type": "Expression"
+														},
+														"type": "String"
+													},
+													"target_path": {
+														"value": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+															"type": "Expression"
+														},
+														"type": "String"
+													}
+												}
+											},
+											"linkedServiceName": {
+												"referenceName": "LS_AZSQL_CONTROL",
+												"type": "LinkedServiceReference"
+											}
+										}
+									]
+								},
+								{
+									"value": "JSON",
+									"activities": [
+										{
+											"name": "Wait1_copy1",
+											"type": "Wait",
+											"dependsOn": [],
+											"userProperties": [],
+											"typeProperties": {
+												"waitTimeInSeconds": 1
+											}
+										}
+									]
+								},
+								{
+									"value": "REST_API",
+									"activities": [
+										{
+											"name": "Wait1_copy2",
+											"type": "Wait",
+											"dependsOn": [],
+											"userProperties": [],
+											"typeProperties": {
+												"waitTimeInSeconds": 1
+											}
+										}
+									]
+								}
+							]
+						}
+					},
+					{
+						"name": "SP_Start_Log",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Lookup_Get_Job_Metadata",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[vb_start_log_entry]",
+							"storedProcedureParameters": {
+								"job_id": {
+									"value": {
+										"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+										"type": "Expression"
+									},
+									"type": "Int32"
+								},
+								"pipeline_name": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"pipeline_run_id": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_AZSQL_CONTROL",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"p_job_id": {
+						"type": "int"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-08-25T10:14:47Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_SQL_CONTROL')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_AZSQL_CONTROL')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_CSV_SOURCE')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_PARQUET_SINK')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_EXCEL_SOURCE')]"
+			]
+		}
+	]
+}
