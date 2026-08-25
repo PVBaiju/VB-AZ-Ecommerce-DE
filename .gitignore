@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Secrets / credentials
+.env
+*.key
+*.pem
+*.pfx
+*.p12
+
+# Azure local configuration
+local.settings.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Generated output
+output/
+temp/
+tmp/
+
+# Azure credentials / secrets
+*secret*
+*credential*
+*password*

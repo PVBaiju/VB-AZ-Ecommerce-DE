@@ -1,0 +1,78 @@
+INSERT INTO dbo.vb_tbl_source
+(
+    source_name,
+    source_type,
+    connection_name,
+    active_flag
+)
+VALUES
+('Ecommerce CSV',          'CSV',          NULL,                    1),
+('Ecommerce Excel',        'EXCEL',        NULL,                    1),
+('Ecommerce JSON',         'JSON',         NULL,                    1),
+('Ecommerce REST API',     'REST_API',     'Ecommerce_REST_API',   1),
+('Ecommerce SQL Server',   'SQL_SERVER',   'Ecommerce_SQL_Server', 1),
+('Ecommerce Snowflake',    'SNOWFLAKE',    'Ecommerce_Snowflake',  1),
+('Ecommerce SFTP',         'SFTP',         'Ecommerce_SFTP',        1),
+('Ecommerce Multiple Files','MULTIPLE_FILE',NULL,                   1),
+('Ecommerce Kafka',        'KAFKA',        'Ecommerce_Kafka',       1);
+
+
+INSERT INTO dbo.vb_tbl_job
+(
+    job_name,
+    source_id,
+    layer_name,
+    load_type,
+    pipeline_name,
+    active_flag
+)
+VALUES
+('JOB_CSV_ORDERS',          37, 'LANDING', 'FULL',        'PL_MASTER_INGESTION', 1),
+('JOB_EXCEL_PRODUCTS',      38, 'LANDING', 'FULL',        'PL_MASTER_INGESTION', 1),
+('JOB_JSON_CUSTOMERS',      39, 'LANDING', 'FULL',        'PL_MASTER_INGESTION', 1),
+('JOB_RESTAPI_ORDERS',      40, 'LANDING', 'INCREMENTAL','PL_MASTER_INGESTION', 1),
+('JOB_SQL_ORDERS',          41, 'LANDING', 'INCREMENTAL','PL_MASTER_INGESTION', 1),
+('JOB_SNOWFLAKE_CUSTOMERS', 42, 'LANDING', 'INCREMENTAL','PL_MASTER_INGESTION', 1),
+('JOB_SFTP_TRANSACTIONS',   43, 'LANDING', 'FULL',        'PL_MASTER_INGESTION', 1),
+('JOB_BULK_FILES',          44, 'LANDING', 'FULL',        'PL_MASTER_INGESTION', 1),
+('JOB_KAFKA_EVENTS',        45, 'BRONZE',  'STREAMING',   'PL_MASTER_INGESTION', 1);
+
+
+
+JOb -id ==10
+INSERT INTO dbo.vb_tbl_job_dtls
+(
+    job_id,
+    dtls_key,
+    dtls_value
+)
+VALUES
+(10, 'source_container', 'source'),
+(10, 'source_path', 'ecommerce/orders'),
+(10, 'file_pattern', 'orders_*.csv'),
+(10, 'file_format', 'csv'),
+(10, 'delimiter', ','),
+(10, 'header', 'true'),
+(10, 'target_container', 'landing'),
+(10, 'target_path', 'ecommerce/orders');
+
+
+
+INSERT INTO dbo.vb_tbl_job_dtls
+(
+    job_id,
+    dtls_key,
+    dtls_value
+)
+VALUES
+(10, 'source_container', 'source'),
+(10, 'source_path', 'ecommerce/orders'),
+(10, 'file_pattern', 'orders_*.csv'),
+(10, 'file_format', 'csv'),
+(10, 'delimiter', ','),
+(10, 'header', 'true'),
+(10, 'target_container', 'landing'),
+(10, 'target_path', 'ecommerce/orders');
+
+
+
