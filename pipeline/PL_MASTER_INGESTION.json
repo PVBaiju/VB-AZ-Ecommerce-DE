@@ -551,10 +551,21 @@
 											"storeSettings": {
 												"type": "AzureBlobFSReadSettings",
 												"recursive": true,
+												"wildcardFolderPath": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+												"wildcardFileName": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
 												"enablePartitionDiscovery": false
 											},
 											"formatSettings": {
 												"type": "JsonReadSettings"
+											}
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
 											}
 										},
 										"enableStaging": false
@@ -567,6 +578,26 @@
 												"p_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
 												"p_folder_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
 												"p_file_name": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_ADLS_PARQUET_SINK",
+											"type": "DatasetReference",
+											"parameters": {
+												"p_container": {
+													"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+													"type": "Expression"
+												},
+												"p_folder_path": {
+													"value": "@concat(     activity('Lookup_Get_Job_Metadata').output.value[0].target_path,     '/',     formatDateTime(utcnow(),'yyyy/MM/dd') )",
+													"type": "Expression"
+												},
+												"p_file_name": {
+													"value": "@concat(     split(         activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern,         '_*'     )[0],     '_',     formatDateTime(utcnow(),'ddMMyyyy'),     '.parquet' )",
+													"type": "Expression"
+												}
 											}
 										}
 									]
