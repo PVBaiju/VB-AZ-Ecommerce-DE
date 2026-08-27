@@ -1,0 +1,23 @@
+{
+	"name": "DS_REST_API_SOURCE",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Ecommerce_REST_API",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"p_relative_url": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "@dataset().p_relative_url",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	}
+}
