@@ -799,7 +799,11 @@
 												"type": "ParquetWriteSettings"
 											}
 										},
-										"enableStaging": false
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"mapComplexValuesToString": true
+										}
 									},
 									"inputs": [
 										{
