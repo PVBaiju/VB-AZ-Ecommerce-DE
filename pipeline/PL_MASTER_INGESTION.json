@@ -534,13 +534,42 @@
 							"value": "JSON",
 							"activities": [
 								{
-									"name": "Wait1_copy1",
-									"type": "Wait",
+									"name": "Copy_JSON_To_Landing",
+									"type": "Copy",
 									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
-										"waitTimeInSeconds": 1
-									}
+										"source": {
+											"type": "JsonSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "JsonReadSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_ADLS_JSON_SOURCE",
+											"type": "DatasetReference",
+											"parameters": {
+												"p_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
+												"p_folder_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+												"p_file_name": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern"
+											}
+										}
+									]
 								}
 							]
 						},
