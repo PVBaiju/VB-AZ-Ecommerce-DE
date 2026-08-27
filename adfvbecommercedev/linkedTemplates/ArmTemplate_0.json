@@ -194,6 +194,51 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_JSON_SOURCE')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_ECOMMERCE",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"p_container": {
+						"type": "string"
+					},
+					"p_folder_path": {
+						"type": "string"
+					},
+					"p_file_name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().p_file_name",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().p_folder_path",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().p_container",
+							"type": "Expression"
+						}
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_ECOMMERCE')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_ADLS_PARQUET_SINK')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -255,51 +300,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS_AZSQL_CONTROL')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DS_ADLS_JSON_SOURCE')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_ADLS_ECOMMERCE",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"p_container": {
-						"type": "string"
-					},
-					"p_folder_path": {
-						"type": "string"
-					},
-					"p_file_name": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().p_file_name",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@dataset().p_folder_path",
-							"type": "Expression"
-						},
-						"fileSystem": {
-							"value": "@dataset().p_container",
-							"type": "Expression"
-						}
-					}
-				},
-				"schema": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_ECOMMERCE')]"
 			]
 		},
 		{
@@ -841,13 +841,73 @@
 									"value": "JSON",
 									"activities": [
 										{
-											"name": "Wait1_copy1",
-											"type": "Wait",
+											"name": "Copy_JSON_To_Landing",
+											"type": "Copy",
 											"dependsOn": [],
+											"policy": {
+												"timeout": "0.12:00:00",
+												"retry": 0,
+												"retryIntervalInSeconds": 30,
+												"secureOutput": false,
+												"secureInput": false
+											},
 											"userProperties": [],
 											"typeProperties": {
-												"waitTimeInSeconds": 1
-											}
+												"source": {
+													"type": "JsonSource",
+													"storeSettings": {
+														"type": "AzureBlobFSReadSettings",
+														"recursive": true,
+														"wildcardFolderPath": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+														"wildcardFileName": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+														"enablePartitionDiscovery": false
+													},
+													"formatSettings": {
+														"type": "JsonReadSettings"
+													}
+												},
+												"sink": {
+													"type": "ParquetSink",
+													"storeSettings": {
+														"type": "AzureBlobFSWriteSettings"
+													},
+													"formatSettings": {
+														"type": "ParquetWriteSettings"
+													}
+												},
+												"enableStaging": false
+											},
+											"inputs": [
+												{
+													"referenceName": "DS_ADLS_JSON_SOURCE",
+													"type": "DatasetReference",
+													"parameters": {
+														"p_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
+														"p_folder_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+														"p_file_name": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern"
+													}
+												}
+											],
+											"outputs": [
+												{
+													"referenceName": "DS_ADLS_PARQUET_SINK",
+													"type": "DatasetReference",
+													"parameters": {
+														"p_container": {
+															"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+															"type": "Expression"
+														},
+														"p_folder_path": {
+															"value": "@concat(     activity('Lookup_Get_Job_Metadata').output.value[0].target_path,     '/',     formatDateTime(utcnow(),'yyyy/MM/dd') )",
+															"type": "Expression"
+														},
+														"p_file_name": {
+															"value": "@concat(     split(         activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern,         '_*'     )[0],     '_',     formatDateTime(utcnow(),'ddMMyyyy'),     '.parquet' )",
+															"type": "Expression"
+														}
+													}
+												}
+											]
 										}
 									]
 								},
@@ -935,7 +995,8 @@
 				"[concat(variables('factoryId'), '/linkedServices/LS_AZSQL_CONTROL')]",
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_CSV_SOURCE')]",
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_PARQUET_SINK')]",
-				"[concat(variables('factoryId'), '/datasets/DS_ADLS_EXCEL_SOURCE')]"
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_EXCEL_SOURCE')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_JSON_SOURCE')]"
 			]
 		}
 	]
