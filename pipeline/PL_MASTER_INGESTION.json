@@ -551,8 +551,14 @@
 											"storeSettings": {
 												"type": "AzureBlobFSReadSettings",
 												"recursive": true,
-												"wildcardFolderPath": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
-												"wildcardFileName": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+												"wildcardFolderPath": {
+													"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+													"type": "Expression"
+												},
+												"wildcardFileName": {
+													"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+													"type": "Expression"
+												},
 												"enablePartitionDiscovery": false
 											},
 											"formatSettings": {
@@ -763,13 +769,64 @@
 							"value": "REST_API",
 							"activities": [
 								{
-									"name": "Wait1_copy2",
-									"type": "Wait",
+									"name": "Copy_RESTAPI_To_Landing",
+									"type": "Copy",
 									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
-										"waitTimeInSeconds": 1
-									}
+										"source": {
+											"type": "RestSource",
+											"httpRequestTimeout": "00:01:40",
+											"requestInterval": "00.00:00:00.010",
+											"requestMethod": "GET",
+											"paginationRules": {
+												"supportRFC5988": "true"
+											}
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_REST_API_SOURCE",
+											"type": "DatasetReference",
+											"parameters": {
+												"p_relative_url": {
+													"value": "@replace(\n    activity('Lookup_Get_Job_Metadata').output.value[0].api_endpoint,\n    'https://dummyjson.com',\n    ''\n)",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_ADLS_PARQUET_SINK",
+											"type": "DatasetReference",
+											"parameters": {
+												"p_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+												"p_folder_path": "@concat(     activity('Lookup_Get_Job_Metadata').output.value[0].target_path,     '/',     formatDateTime(utcnow(),'yyyy/MM/dd') )",
+												"p_file_name": {
+													"value": "@concat(\n    last(\n        split(\n            activity('Lookup_Get_Job_Metadata').output.value[0].api_endpoint,\n            '/'\n        )\n    ),\n    '_',\n    formatDateTime(utcnow(),'ddMMyyyy'),\n    '.parquet'\n)",
+													"type": "Expression"
+												}
+											}
+										}
+									]
 								}
 							]
 						}
