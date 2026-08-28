@@ -1254,7 +1254,7 @@
 											"type": "DatasetReference",
 											"parameters": {
 												"p_relative_url": {
-													"value": "/users",
+													"value": "@replace(\n    activity('Lookup_Get_Job_Metadata').output.value[0].api_endpoint,\n    'https://dummyjson.com',\n    ''\n)",
 													"type": "Expression"
 												}
 											}
