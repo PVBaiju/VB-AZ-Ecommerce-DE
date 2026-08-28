@@ -488,7 +488,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"p_relative_url": {
-								"value": "@replace(\n    activity('Lookup_Get_Job_Metadata').output.value[0].api_endpoint,\n    'https://dummyjson.com',\n    ''\n)",
+								"value": "@replace(\n    pipeline().parameters.p_api_endpoint,\n    'https://dummyjson.com',\n    ''\n)",
 								"type": "Expression"
 							}
 						}
@@ -499,10 +499,16 @@
 						"referenceName": "DS_ADLS_PARQUET_SINK",
 						"type": "DatasetReference",
 						"parameters": {
-							"p_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
-							"p_folder_path": "@concat(     activity('Lookup_Get_Job_Metadata').output.value[0].target_path,     '/',     formatDateTime(utcnow(),'yyyy/MM/dd') )",
+							"p_container": {
+								"value": "@pipeline().parameters.p_target_container",
+								"type": "Expression"
+							},
+							"p_folder_path": {
+								"value": "@concat(pipeline().parameters.p_target_path,'/',formatDateTime(utcnow(),'yyyy/MM/dd'))",
+								"type": "Expression"
+							},
 							"p_file_name": {
-								"value": "@concat(\n    last(\n        split(\n            activity('Lookup_Get_Job_Metadata').output.value[0].api_endpoint,\n            '/'\n        )\n    ),\n    '_',\n    formatDateTime(utcnow(),'ddMMyyyy'),\n    '.parquet'\n)",
+								"value": "@concat(last(split(pipeline().parameters.p_api_endpoint,'/')),'_',formatDateTime(utcnow(),'ddMMyyyy'),'.parquet')",
 								"type": "Expression"
 							}
 						}
@@ -537,7 +543,7 @@
 						},
 						"job_id": {
 							"value": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+								"value": "@pipeline().parameters.p_job_id",
 								"type": "Expression"
 							},
 							"type": "Int32"
@@ -548,7 +554,7 @@
 						},
 						"pipeline_run_id": {
 							"value": {
-								"value": "@pipeline().RunId",
+								"value": "@pipeline().parameters.p_pipeline_run_id",
 								"type": "Expression"
 							},
 							"type": "String"
@@ -569,14 +575,14 @@
 						},
 						"source_file": {
 							"value": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+								"value": "@pipeline().parameters.p_api_endpoint",
 								"type": "Expression"
 							},
 							"type": "String"
 						},
 						"target_path": {
 							"value": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+								"value": "@pipeline().parameters.p_target_path",
 								"type": "Expression"
 							},
 							"type": "String"
@@ -619,7 +625,7 @@
 						},
 						"job_id": {
 							"value": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+								"value": "@pipeline().parameters.p_job_id",
 								"type": "Expression"
 							},
 							"type": "Int32"
@@ -630,7 +636,7 @@
 						},
 						"pipeline_run_id": {
 							"value": {
-								"value": "@pipeline().RunId",
+								"value": "@pipeline().parameters.p_pipeline_run_id",
 								"type": "Expression"
 							},
 							"type": "String"
@@ -645,14 +651,14 @@
 						},
 						"source_file": {
 							"value": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+								"value": "@pipeline().parameters.p_api_endpoint",
 								"type": "Expression"
 							},
 							"type": "String"
 						},
 						"target_path": {
 							"value": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+								"value": "@pipeline().parameters.p_target_path",
 								"type": "Expression"
 							},
 							"type": "String"
