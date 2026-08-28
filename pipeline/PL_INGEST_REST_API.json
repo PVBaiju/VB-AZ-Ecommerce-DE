@@ -668,6 +668,18 @@
 		"parameters": {
 			"p_job_id": {
 				"type": "int"
+			},
+			"p_api_endpoint": {
+				"type": "string"
+			},
+			"p_target_container": {
+				"type": "string"
+			},
+			"p_target_path": {
+				"type": "string"
+			},
+			"p_pipeline_run_id": {
+				"type": "string"
 			}
 		},
 		"annotations": []
