@@ -1,0 +1,6 @@
+{
+	"name": "SHIR-ECOMMERCE-ONPREM",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}
