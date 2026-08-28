@@ -20,14 +20,8 @@
 						"storeSettings": {
 							"type": "AzureBlobFSReadSettings",
 							"recursive": true,
-							"wildcardFolderPath": {
-								"value": "@pipeline().parameters.p_source_path",
-								"type": "Expression"
-							},
-							"wildcardFileName": {
-								"value": "@pipeline().parameters.p_file_pattern",
-								"type": "Expression"
-							},
+							"wildcardFolderPath": "@pipeline().parameters.p_source_path",
+							"wildcardFileName": "@pipeline().parameters.p_file_pattern",
 							"enablePartitionDiscovery": false
 						},
 						"formatSettings": {
@@ -56,7 +50,15 @@
 				"inputs": [
 					{
 						"referenceName": "DS_ADLS_CSV_SOURCE",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"p_container": "@pipeline().parameters.p_source_container",
+							"p_folder_path": {
+								"value": "@pipeline().parameters.p_source_path",
+								"type": "Expression"
+							},
+							"p_file_name": "@pipeline().parameters.p_file_pattern"
+						}
 					}
 				],
 				"outputs": [
