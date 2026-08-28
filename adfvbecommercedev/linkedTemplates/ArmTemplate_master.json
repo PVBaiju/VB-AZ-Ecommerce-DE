@@ -11,6 +11,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_AZSQL_CONTROL'"
 		},
+		"Ecommerce_REST_API_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://dummyjson.com"
+		},
 		"LS_ADLS_ECOMMERCE_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://adlsvbecommercedev.dfs.core.windows.net/"
@@ -56,6 +60,9 @@
 					},
 					"LS_AZSQL_CONTROL_password": {
 						"value": "[parameters('LS_AZSQL_CONTROL_password')]"
+					},
+					"Ecommerce_REST_API_properties_typeProperties_url": {
+						"value": "[parameters('Ecommerce_REST_API_properties_typeProperties_url')]"
 					},
 					"LS_ADLS_ECOMMERCE_properties_typeProperties_url": {
 						"value": "[parameters('LS_ADLS_ECOMMERCE_properties_typeProperties_url')]"

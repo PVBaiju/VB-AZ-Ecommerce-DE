@@ -8,6 +8,9 @@
 		"LS_AZSQL_CONTROL_password": {
 			"value": ""
 		},
+		"Ecommerce_REST_API_properties_typeProperties_url": {
+			"value": "https://dummyjson.com"
+		},
 		"LS_ADLS_ECOMMERCE_properties_typeProperties_url": {
 			"value": "https://adlsvbecommercedev.dfs.core.windows.net/"
 		},
