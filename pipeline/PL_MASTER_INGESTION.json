@@ -78,6 +78,10 @@
 											"p_pipeline_run_id": {
 												"value": "@pipeline().RunId",
 												"type": "Expression"
+											},
+											"p_source_container": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
+												"type": "Expression"
 											}
 										}
 									}
