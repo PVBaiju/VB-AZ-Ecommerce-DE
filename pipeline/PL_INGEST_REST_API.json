@@ -194,7 +194,7 @@
 									"path": "['address']['address']"
 								},
 								"sink": {
-									"name": "users'][0]['address_address"
+									"name": "address_address"
 								}
 							},
 							{
@@ -202,7 +202,7 @@
 									"path": "['address']['city']"
 								},
 								"sink": {
-									"name": "users'][0]['address_city"
+									"name": "address_city"
 								}
 							},
 							{
@@ -210,7 +210,7 @@
 									"path": "['address']['state']"
 								},
 								"sink": {
-									"name": "users'][0]['address_state"
+									"name": "address_state"
 								}
 							},
 							{
@@ -218,7 +218,7 @@
 									"path": "['address']['stateCode']"
 								},
 								"sink": {
-									"name": "users'][0]['address_stateCode"
+									"name": "address_stateCode"
 								}
 							},
 							{
@@ -226,7 +226,7 @@
 									"path": "['address']['postalCode']"
 								},
 								"sink": {
-									"name": "users'][0]['address_postalCode"
+									"name": "address_postalCode"
 								}
 							},
 							{
@@ -234,7 +234,7 @@
 									"path": "['address']['coordinates']['lat']"
 								},
 								"sink": {
-									"name": "users'][0]['address_coordinates_lat"
+									"name": "address_coordinates_lat"
 								}
 							},
 							{
@@ -242,7 +242,7 @@
 									"path": "['address']['coordinates']['lng']"
 								},
 								"sink": {
-									"name": "users'][0]['address_coordinates_lng"
+									"name": "address_coordinates_lng"
 								}
 							},
 							{
@@ -250,7 +250,7 @@
 									"path": "['address']['country']"
 								},
 								"sink": {
-									"name": "users'][0]['address_country"
+									"name": "address_country"
 								}
 							},
 							{
@@ -338,7 +338,7 @@
 									"path": "['company']['address']['address']"
 								},
 								"sink": {
-									"name": "users'][0]['company_address_address"
+									"name": "company_address_address"
 								}
 							},
 							{
@@ -346,7 +346,7 @@
 									"path": "['company']['address']['city']"
 								},
 								"sink": {
-									"name": "users'][0]['company_address_city"
+									"name": "company_address_city"
 								}
 							},
 							{
@@ -354,7 +354,7 @@
 									"path": "['company']['address']['state']"
 								},
 								"sink": {
-									"name": "users'][0]['company_address_state"
+									"name": "company_address_state"
 								}
 							},
 							{
@@ -362,7 +362,7 @@
 									"path": "['company']['address']['stateCode']"
 								},
 								"sink": {
-									"name": "users'][0]['company_address_stateCode"
+									"name": "company_address_stateCode"
 								}
 							},
 							{
@@ -370,7 +370,7 @@
 									"path": "['company']['address']['postalCode']"
 								},
 								"sink": {
-									"name": "users'][0]['company_address_postalCode"
+									"name": "company_address_postalCode"
 								}
 							},
 							{
@@ -378,7 +378,7 @@
 									"path": "['company']['address']['coordinates']['lat']"
 								},
 								"sink": {
-									"name": "users'][0]['company_address_coordinates_lat"
+									"name": "company_address_coordinates_lat"
 								}
 							},
 							{
@@ -386,7 +386,7 @@
 									"path": "['company']['address']['coordinates']['lng']"
 								},
 								"sink": {
-									"name": "users'][0]['company_address_coordinates_lng"
+									"name": "company_address_coordinates_lng"
 								}
 							},
 							{
@@ -394,7 +394,7 @@
 									"path": "['company']['address']['country']"
 								},
 								"sink": {
-									"name": "users'][0]['company_address_country"
+									"name": "company_address_country"
 								}
 							},
 							{
@@ -478,7 +478,7 @@
 								}
 							}
 						],
-						"collectionReference": "$.users",
+						"collectionReference": "$['users']",
 						"mapComplexValuesToString": true
 					}
 				},
