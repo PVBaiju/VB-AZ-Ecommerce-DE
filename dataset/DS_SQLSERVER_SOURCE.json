@@ -1,0 +1,30 @@
+{
+	"name": "DS_SQLSERVER_SOURCE",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SQLSERVER_ECOMMERCE_ONPREM",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"p_schema": {
+				"type": "string"
+			},
+			"p_table": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().p_schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().p_table",
+				"type": "Expression"
+			}
+		}
+	}
+}
