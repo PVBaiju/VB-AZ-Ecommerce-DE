@@ -1427,7 +1427,7 @@
 											"path": "[['address']['address']"
 										},
 										"sink": {
-											"name": "address_address"
+											"name": "address"
 										}
 									},
 									{
