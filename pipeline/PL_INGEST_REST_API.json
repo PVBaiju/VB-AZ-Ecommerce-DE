@@ -7,7 +7,7 @@
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Lookup_Get_Job_Metadata",
+						"activity": "SP_Start_Log",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -686,6 +686,56 @@
 						"target_path": {
 							"value": {
 								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AZSQL_CONTROL",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "SP_Start_Log",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Get_Job_Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[vb_start_log_entry]",
+					"storedProcedureParameters": {
+						"job_id": {
+							"value": {
+								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"pipeline_name": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipeline_run_id": {
+							"value": {
+								"value": "@pipeline().RunId",
 								"type": "Expression"
 							},
 							"type": "String"
