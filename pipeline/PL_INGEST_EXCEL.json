@@ -55,10 +55,22 @@
 						"referenceName": "DS_ADLS_EXCEL_SOURCE",
 						"type": "DatasetReference",
 						"parameters": {
-							"p_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
-							"p_folder_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
-							"p_file_name": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
-							"p_sheet_name": "@activity('Lookup_Get_Job_Metadata').output.value[0].sheet_name"
+							"p_container": {
+								"value": "@pipeline().parameters.p_source_container",
+								"type": "Expression"
+							},
+							"p_folder_path": {
+								"value": "@pipeline().parameters.p_source_path",
+								"type": "Expression"
+							},
+							"p_file_name": {
+								"value": "@pipeline().parameters.p_file_pattern",
+								"type": "Expression"
+							},
+							"p_sheet_name": {
+								"value": "@pipeline().parameters.p_sheet_name",
+								"type": "Expression"
+							}
 						}
 					}
 				],
@@ -68,15 +80,15 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"p_container": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+								"value": "@pipeline().parameters.p_target_container",
 								"type": "Expression"
 							},
 							"p_folder_path": {
-								"value": "@concat(\n    activity('Lookup_Get_Job_Metadata').output.value[0].target_path,\n    '/',\n    formatDateTime(utcnow(),'yyyy/MM/dd')\n)",
+								"value": "@concat(pipeline().parameters.p_target_path,'/',formatDateTime(utcnow(),'yyyy/MM/dd'))",
 								"type": "Expression"
 							},
 							"p_file_name": {
-								"value": "@concat(\n    split(\n        activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern,\n        '_*'\n    )[0],\n    '_',\n    formatDateTime(utcnow(),'ddMMyyyy'),\n    '.parquet'\n)",
+								"value": "@concat(split(pipeline().parameters.p_file_pattern,'_*')[0],'_',formatDateTime(utcnow(),'ddMMyyyy'),'.parquet')",
 								"type": "Expression"
 							}
 						}
@@ -114,7 +126,7 @@
 						},
 						"job_id": {
 							"value": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+								"value": "@pipeline().parameters.p_job_id",
 								"type": "Expression"
 							},
 							"type": "Int32"
@@ -140,14 +152,14 @@
 						},
 						"source_file": {
 							"value": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+								"value": "@pipeline().parameters.p_file_pattern",
 								"type": "Expression"
 							},
 							"type": "String"
 						},
 						"target_path": {
 							"value": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+								"value": "@pipeline().parameters.p_target_path",
 								"type": "Expression"
 							},
 							"type": "String"
@@ -187,7 +199,7 @@
 						},
 						"job_id": {
 							"value": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+								"value": "@pipeline().parameters.p_job_id",
 								"type": "Expression"
 							},
 							"type": "Int32"
@@ -198,7 +210,7 @@
 						},
 						"pipeline_run_id": {
 							"value": {
-								"value": "@pipeline().RunId",
+								"value": "@pipeline().parameters.p_pipeline_run_id",
 								"type": "Expression"
 							},
 							"type": "String"
@@ -219,14 +231,14 @@
 						},
 						"source_file": {
 							"value": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+								"value": "@pipeline().parameters.p_file_pattern",
 								"type": "Expression"
 							},
 							"type": "String"
 						},
 						"target_path": {
 							"value": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+								"value": "@pipeline().parameters.p_target_path",
 								"type": "Expression"
 							},
 							"type": "String"
