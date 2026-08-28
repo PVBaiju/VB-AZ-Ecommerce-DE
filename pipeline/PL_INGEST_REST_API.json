@@ -1,0 +1,553 @@
+{
+	"name": "PL_INGEST_REST_API",
+	"properties": {
+		"activities": [
+			{
+				"name": "CP_REST_API_TO_ADLS",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Get_Job_Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"paginationRules": {
+							"supportRFC5988": "true"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['id']"
+								},
+								"sink": {
+									"name": "id"
+								}
+							},
+							{
+								"source": {
+									"path": "['firstName']"
+								},
+								"sink": {
+									"name": "firstName"
+								}
+							},
+							{
+								"source": {
+									"path": "['lastName']"
+								},
+								"sink": {
+									"name": "lastName"
+								}
+							},
+							{
+								"source": {
+									"path": "['maidenName']"
+								},
+								"sink": {
+									"name": "maidenName"
+								}
+							},
+							{
+								"source": {
+									"path": "['age']"
+								},
+								"sink": {
+									"name": "age"
+								}
+							},
+							{
+								"source": {
+									"path": "['gender']"
+								},
+								"sink": {
+									"name": "gender"
+								}
+							},
+							{
+								"source": {
+									"path": "['email']"
+								},
+								"sink": {
+									"name": "email"
+								}
+							},
+							{
+								"source": {
+									"path": "['phone']"
+								},
+								"sink": {
+									"name": "phone"
+								}
+							},
+							{
+								"source": {
+									"path": "['username']"
+								},
+								"sink": {
+									"name": "username"
+								}
+							},
+							{
+								"source": {
+									"path": "['password']"
+								},
+								"sink": {
+									"name": "password"
+								}
+							},
+							{
+								"source": {
+									"path": "['birthDate']"
+								},
+								"sink": {
+									"name": "birthDate"
+								}
+							},
+							{
+								"source": {
+									"path": "['image']"
+								},
+								"sink": {
+									"name": "image"
+								}
+							},
+							{
+								"source": {
+									"path": "['bloodGroup']"
+								},
+								"sink": {
+									"name": "bloodGroup"
+								}
+							},
+							{
+								"source": {
+									"path": "['height']"
+								},
+								"sink": {
+									"name": "height"
+								}
+							},
+							{
+								"source": {
+									"path": "['weight']"
+								},
+								"sink": {
+									"name": "weight"
+								}
+							},
+							{
+								"source": {
+									"path": "['eyeColor']"
+								},
+								"sink": {
+									"name": "eyeColor"
+								}
+							},
+							{
+								"source": {
+									"path": "['hair']['color']"
+								},
+								"sink": {
+									"name": "color"
+								}
+							},
+							{
+								"source": {
+									"path": "['hair']['type']"
+								},
+								"sink": {
+									"name": "type"
+								}
+							},
+							{
+								"source": {
+									"path": "['ip']"
+								},
+								"sink": {
+									"name": "ip"
+								}
+							},
+							{
+								"source": {
+									"path": "['address']['address']"
+								},
+								"sink": {
+									"name": "users'][0]['address_address"
+								}
+							},
+							{
+								"source": {
+									"path": "['address']['city']"
+								},
+								"sink": {
+									"name": "users'][0]['address_city"
+								}
+							},
+							{
+								"source": {
+									"path": "['address']['state']"
+								},
+								"sink": {
+									"name": "users'][0]['address_state"
+								}
+							},
+							{
+								"source": {
+									"path": "['address']['stateCode']"
+								},
+								"sink": {
+									"name": "users'][0]['address_stateCode"
+								}
+							},
+							{
+								"source": {
+									"path": "['address']['postalCode']"
+								},
+								"sink": {
+									"name": "users'][0]['address_postalCode"
+								}
+							},
+							{
+								"source": {
+									"path": "['address']['coordinates']['lat']"
+								},
+								"sink": {
+									"name": "users'][0]['address_coordinates_lat"
+								}
+							},
+							{
+								"source": {
+									"path": "['address']['coordinates']['lng']"
+								},
+								"sink": {
+									"name": "users'][0]['address_coordinates_lng"
+								}
+							},
+							{
+								"source": {
+									"path": "['address']['country']"
+								},
+								"sink": {
+									"name": "users'][0]['address_country"
+								}
+							},
+							{
+								"source": {
+									"path": "['macAddress']"
+								},
+								"sink": {
+									"name": "macAddress"
+								}
+							},
+							{
+								"source": {
+									"path": "['university']"
+								},
+								"sink": {
+									"name": "university"
+								}
+							},
+							{
+								"source": {
+									"path": "['bank']['cardExpire']"
+								},
+								"sink": {
+									"name": "cardExpire"
+								}
+							},
+							{
+								"source": {
+									"path": "['bank']['cardNumber']"
+								},
+								"sink": {
+									"name": "cardNumber"
+								}
+							},
+							{
+								"source": {
+									"path": "['bank']['cardType']"
+								},
+								"sink": {
+									"name": "cardType"
+								}
+							},
+							{
+								"source": {
+									"path": "['bank']['currency']"
+								},
+								"sink": {
+									"name": "currency"
+								}
+							},
+							{
+								"source": {
+									"path": "['bank']['iban']"
+								},
+								"sink": {
+									"name": "iban"
+								}
+							},
+							{
+								"source": {
+									"path": "['company']['department']"
+								},
+								"sink": {
+									"name": "department"
+								}
+							},
+							{
+								"source": {
+									"path": "['company']['name']"
+								},
+								"sink": {
+									"name": "name"
+								}
+							},
+							{
+								"source": {
+									"path": "['company']['title']"
+								},
+								"sink": {
+									"name": "title"
+								}
+							},
+							{
+								"source": {
+									"path": "['company']['address']['address']"
+								},
+								"sink": {
+									"name": "users'][0]['company_address_address"
+								}
+							},
+							{
+								"source": {
+									"path": "['company']['address']['city']"
+								},
+								"sink": {
+									"name": "users'][0]['company_address_city"
+								}
+							},
+							{
+								"source": {
+									"path": "['company']['address']['state']"
+								},
+								"sink": {
+									"name": "users'][0]['company_address_state"
+								}
+							},
+							{
+								"source": {
+									"path": "['company']['address']['stateCode']"
+								},
+								"sink": {
+									"name": "users'][0]['company_address_stateCode"
+								}
+							},
+							{
+								"source": {
+									"path": "['company']['address']['postalCode']"
+								},
+								"sink": {
+									"name": "users'][0]['company_address_postalCode"
+								}
+							},
+							{
+								"source": {
+									"path": "['company']['address']['coordinates']['lat']"
+								},
+								"sink": {
+									"name": "users'][0]['company_address_coordinates_lat"
+								}
+							},
+							{
+								"source": {
+									"path": "['company']['address']['coordinates']['lng']"
+								},
+								"sink": {
+									"name": "users'][0]['company_address_coordinates_lng"
+								}
+							},
+							{
+								"source": {
+									"path": "['company']['address']['country']"
+								},
+								"sink": {
+									"name": "users'][0]['company_address_country"
+								}
+							},
+							{
+								"source": {
+									"path": "['ein']"
+								},
+								"sink": {
+									"name": "ein"
+								}
+							},
+							{
+								"source": {
+									"path": "['ssn']"
+								},
+								"sink": {
+									"name": "ssn"
+								}
+							},
+							{
+								"source": {
+									"path": "['userAgent']"
+								},
+								"sink": {
+									"name": "userAgent"
+								}
+							},
+							{
+								"source": {
+									"path": "['crypto']['coin']"
+								},
+								"sink": {
+									"name": "coin"
+								}
+							},
+							{
+								"source": {
+									"path": "['crypto']['wallet']"
+								},
+								"sink": {
+									"name": "wallet"
+								}
+							},
+							{
+								"source": {
+									"path": "['crypto']['network']"
+								},
+								"sink": {
+									"name": "network"
+								}
+							},
+							{
+								"source": {
+									"path": "['role']"
+								},
+								"sink": {
+									"name": "role"
+								}
+							},
+							{
+								"source": {
+									"path": "$['total']"
+								},
+								"sink": {
+									"name": "total"
+								}
+							},
+							{
+								"source": {
+									"path": "$['skip']"
+								},
+								"sink": {
+									"name": "skip"
+								}
+							},
+							{
+								"source": {
+									"path": "$['limit']"
+								},
+								"sink": {
+									"name": "limit"
+								}
+							}
+						],
+						"collectionReference": "$.users",
+						"mapComplexValuesToString": true
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_REST_API_SOURCE",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_relative_url": {
+								"value": "@replace(\n    activity('Lookup_Get_Job_Metadata').output.value[0].api_endpoint,\n    'https://dummyjson.com',\n    ''\n)",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_ADLS_PARQUET_SINK",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+							"p_folder_path": "@concat(     activity('Lookup_Get_Job_Metadata').output.value[0].target_path,     '/',     formatDateTime(utcnow(),'yyyy/MM/dd') )",
+							"p_file_name": {
+								"value": "@concat(\n    last(\n        split(\n            activity('Lookup_Get_Job_Metadata').output.value[0].api_endpoint,\n            '/'\n        )\n    ),\n    '_',\n    formatDateTime(utcnow(),'ddMMyyyy'),\n    '.parquet'\n)",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Lookup_Get_Job_Metadata",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "@concat(\n    'EXEC dbo.vb_get_job_config @job_id = ',\n    string(pipeline().parameters.p_job_id)\n)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_SQL_CONTROL",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"parameters": {
+			"p_job_id": {
+				"type": "int"
+			}
+		},
+		"annotations": []
+	}
+}
