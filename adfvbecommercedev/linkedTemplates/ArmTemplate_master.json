@@ -11,6 +11,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_AZSQL_CONTROL'"
 		},
+		"LS_SQLSERVER_ECOMMERCE_ONPREM_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_SQLSERVER_ECOMMERCE_ONPREM'"
+		},
 		"Ecommerce_REST_API_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://dummyjson.com"
@@ -30,6 +34,18 @@
 		"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "sqladminvb"
+		},
+		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "."
+		},
+		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "ECommerceSource"
+		},
+		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "vb-admin"
 		},
 		"containerUri": {
 			"type": "string",
@@ -61,6 +77,9 @@
 					"LS_AZSQL_CONTROL_password": {
 						"value": "[parameters('LS_AZSQL_CONTROL_password')]"
 					},
+					"LS_SQLSERVER_ECOMMERCE_ONPREM_password": {
+						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_password')]"
+					},
 					"Ecommerce_REST_API_properties_typeProperties_url": {
 						"value": "[parameters('Ecommerce_REST_API_properties_typeProperties_url')]"
 					},
@@ -75,6 +94,15 @@
 					},
 					"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
 						"value": "[parameters('LS_AZSQL_CONTROL_properties_typeProperties_userName')]"
+					},
+					"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server": {
+						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server')]"
+					},
+					"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_database": {
+						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_database')]"
+					},
+					"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_userName": {
+						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_userName')]"
 					}
 				}
 			},

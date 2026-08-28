@@ -8,6 +8,9 @@
 		"LS_AZSQL_CONTROL_password": {
 			"value": ""
 		},
+		"LS_SQLSERVER_ECOMMERCE_ONPREM_password": {
+			"value": ""
+		},
 		"Ecommerce_REST_API_properties_typeProperties_url": {
 			"value": "https://dummyjson.com"
 		},
@@ -22,6 +25,15 @@
 		},
 		"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
 			"value": "sqladminvb"
+		},
+		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server": {
+			"value": "."
+		},
+		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_database": {
+			"value": "ECommerceSource"
+		},
+		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_userName": {
+			"value": "vb-admin"
 		},
 		"containerUri": {
 			"value": ""
