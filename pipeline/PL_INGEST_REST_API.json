@@ -170,7 +170,7 @@
 									"path": "['hair']['color']"
 								},
 								"sink": {
-									"name": "color"
+									"name": "hair_color"
 								}
 							},
 							{
@@ -178,7 +178,7 @@
 									"path": "['hair']['type']"
 								},
 								"sink": {
-									"name": "type"
+									"name": "hair_type"
 								}
 							},
 							{
@@ -274,7 +274,7 @@
 									"path": "['bank']['cardExpire']"
 								},
 								"sink": {
-									"name": "cardExpire"
+									"name": "bank_cardExpire"
 								}
 							},
 							{
@@ -282,7 +282,7 @@
 									"path": "['bank']['cardNumber']"
 								},
 								"sink": {
-									"name": "cardNumber"
+									"name": "bank_cardNumber"
 								}
 							},
 							{
@@ -290,7 +290,7 @@
 									"path": "['bank']['cardType']"
 								},
 								"sink": {
-									"name": "cardType"
+									"name": "bank_cardType"
 								}
 							},
 							{
@@ -298,7 +298,7 @@
 									"path": "['bank']['currency']"
 								},
 								"sink": {
-									"name": "currency"
+									"name": "bank_currency"
 								}
 							},
 							{
@@ -306,7 +306,7 @@
 									"path": "['bank']['iban']"
 								},
 								"sink": {
-									"name": "iban"
+									"name": "bank_iban"
 								}
 							},
 							{
@@ -314,7 +314,7 @@
 									"path": "['company']['department']"
 								},
 								"sink": {
-									"name": "department"
+									"name": "company_department"
 								}
 							},
 							{
@@ -322,7 +322,7 @@
 									"path": "['company']['name']"
 								},
 								"sink": {
-									"name": "name"
+									"name": "company_name"
 								}
 							},
 							{
@@ -330,7 +330,7 @@
 									"path": "['company']['title']"
 								},
 								"sink": {
-									"name": "title"
+									"name": "company_title"
 								}
 							},
 							{
@@ -338,7 +338,7 @@
 									"path": "['company']['address']['address']"
 								},
 								"sink": {
-									"name": "company_address_address"
+									"name": "company_address"
 								}
 							},
 							{
@@ -426,7 +426,7 @@
 									"path": "['crypto']['coin']"
 								},
 								"sink": {
-									"name": "coin"
+									"name": "crypto_coin"
 								}
 							},
 							{
@@ -434,7 +434,7 @@
 									"path": "['crypto']['wallet']"
 								},
 								"sink": {
-									"name": "wallet"
+									"name": "crypto_wallet"
 								}
 							},
 							{
@@ -442,7 +442,7 @@
 									"path": "['crypto']['network']"
 								},
 								"sink": {
-									"name": "network"
+									"name": "crypto_network"
 								}
 							},
 							{
@@ -452,34 +452,10 @@
 								"sink": {
 									"name": "role"
 								}
-							},
-							{
-								"source": {
-									"path": "$['total']"
-								},
-								"sink": {
-									"name": "total"
-								}
-							},
-							{
-								"source": {
-									"path": "$['skip']"
-								},
-								"sink": {
-									"name": "skip"
-								}
-							},
-							{
-								"source": {
-									"path": "$['limit']"
-								},
-								"sink": {
-									"name": "limit"
-								}
 							}
 						],
 						"collectionReference": "$['users']",
-						"mapComplexValuesToString": true
+						"mapComplexValuesToString": false
 					}
 				},
 				"inputs": [
