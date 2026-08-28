@@ -6,13 +6,13 @@
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {
+			"p_container": {
+				"type": "string"
+			},
 			"p_folder_path": {
 				"type": "string"
 			},
 			"p_file_name": {
-				"type": "string"
-			},
-			"p_container": {
 				"type": "string"
 			}
 		},
