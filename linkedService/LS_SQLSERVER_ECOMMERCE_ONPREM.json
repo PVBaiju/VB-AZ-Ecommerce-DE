@@ -1,0 +1,22 @@
+{
+	"name": "LS_SQLSERVER_ECOMMERCE_ONPREM",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "OnPrem Migration ",
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"server": ".",
+			"database": "ECommerceSource",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "vb-admin",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI4NzUwOWY2Mi1lYTRjLTRhODAtYTE0Yi1hMmUzZTI5ZDE5YzQiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "SHIR-ECOMMERCE-ONPREM",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
