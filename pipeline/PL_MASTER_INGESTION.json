@@ -113,7 +113,10 @@
 											"p_source_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
 											"p_source_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
 											"p_file_pattern": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
-											"p_sheet_name": "@pipeline().parameters.p_sheet_name",
+											"p_sheet_name": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].sheet_name",
+												"type": "Expression"
+											},
 											"p_target_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
 											"p_target_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
 											"p_pipeline_run_id": "@pipeline().RunId"
