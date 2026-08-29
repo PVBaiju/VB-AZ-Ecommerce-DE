@@ -25,7 +25,7 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "@concat(\n'SELECT * FROM ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_schema,\n'.',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_table,\n' WHERE ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.watermark_column,\n' > ''',\nactivity('Lookup_Last_Watermark').output.firstRow.last_watermark_value,\n''' AND ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.watermark_column,\n' <= ''',\nactivity('Lookup_Current_Watermark').output.firstRow.current_watermark,\n''''\n)",
+							"value": "@concat(\n'SELECT *\nFROM ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_schema,\n'.',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_table,\n' WHERE ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.watermark_column,\n' > ''',\nactivity('Lookup_Last_Watermark').output.firstRow.last_watermark_value,\n''' AND ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.watermark_column,\n' <= ''',\nactivity('Lookup_Current_Watermark').output.firstRow.current_watermark,\n''''\n)",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
