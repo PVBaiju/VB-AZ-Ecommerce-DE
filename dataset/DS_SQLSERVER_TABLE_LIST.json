@@ -1,0 +1,12 @@
+{
+	"name": "DS_SQLSERVER_TABLE_LIST",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SQLSERVER_ECOMMERCE_ONPREM",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	}
+}
