@@ -357,7 +357,7 @@
 					"storedProcedureParameters": {
 						"job_id": {
 							"value": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+								"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.job_id",
 								"type": "Expression"
 							},
 							"type": "Int32"
