@@ -45,7 +45,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"on": {
-						"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_type",
+						"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_type",
 						"type": "Expression"
 					},
 					"cases": [
