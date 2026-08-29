@@ -1779,11 +1779,11 @@
 													"type": "Expression"
 												},
 												"p_folder_path": {
-													"value": "@concat(\n    'ecommerce/sql/',\n    toLower(item().source_table),\n    '/',\n    formatDateTime(utcNow(),'yyyy/MM/dd')\n)\n)",
+													"value": "@concat(\n    'ecommerce/sql/',\n    toLower(item().source_table),\n    '/',\n    formatDateTime(\n        convertTimeZone(utcnow(),'UTC','India Standard Time'),\n        'yyyy/MM/dd'\n    )\n)",
 													"type": "Expression"
 												},
 												"p_file_name": {
-													"value": "@concat(\n    toLower(item().source_table),\n    '_',\n    formatDateTime(utcnow(),'ddMMyyyyHHmmss'),\n    '.parquet'\n)",
+													"value": "@concat(\n    toLower(item().source_table),\n    '_',\n    formatDateTime(\n        convertTimeZone(utcnow(),'UTC','India Standard Time'),\n        'yyyyMMdd_HHmmss'\n    ),\n    '.parquet'\n)",
 													"type": "Expression"
 												}
 											}
@@ -2418,7 +2418,7 @@
 												"waitOnCompletion": true,
 												"parameters": {
 													"p_job_id": {
-														"value": "@string(activity('Lookup_Get_Job_Metadata').output.firstRow.job_id)",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.job_id",
 														"type": "Expression"
 													},
 													"p_pipeline_run_id": {
