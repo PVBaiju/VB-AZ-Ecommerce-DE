@@ -388,6 +388,82 @@
 					"referenceName": "LS_AZSQL_CONTROL",
 					"type": "LinkedServiceReference"
 				}
+			},
+			{
+				"name": "SP_End_Log_Failure_Watermark",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "SP_Update_Watermark",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[vb_end_log_entry]",
+					"storedProcedureParameters": {
+						"error": {
+							"value": {
+								"value": "@activity('SP_Update_Watermark').error.message",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"job_id": {
+							"value": {
+								"value": "@pipeline().parameters.p_job_id",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"job_status": {
+							"value": "'FAILED'",
+							"type": "String"
+						},
+						"pipeline_run_id": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"records_read": {
+							"value": "'NULL'",
+							"type": "String"
+						},
+						"records_written": {
+							"value": "'NULL'",
+							"type": "String"
+						},
+						"source_file": {
+							"value": {
+								"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"target_path": {
+							"value": {
+								"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.target_path",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AZSQL_CONTROL",
+					"type": "LinkedServiceReference"
+				}
 			}
 		],
 		"parameters": {
