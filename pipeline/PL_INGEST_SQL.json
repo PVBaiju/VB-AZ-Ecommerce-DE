@@ -101,7 +101,7 @@
 								"source": {
 									"type": "AzureSqlSource",
 									"sqlReaderQuery": {
-										"value": "SELECT\n    last_watermark_value,\n    watermark_column\nFROM dbo.vb_tbl_watermark\nWHERE job_id = 14\n  AND source_schema = '@{item().source_schema}'\n  AND source_table = '@{item().source_table}';",
+										"value": "SELECT\n    watermark_column,\n    last_watermark_value\nFROM dbo.vb_tbl_watermark\nWHERE job_id = @{pipeline().parameters.p_job_id}\n  AND source_schema = '@{item().source_schema}'\n  AND source_table = '@{item().source_table}';",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
@@ -118,7 +118,7 @@
 							"type": "Copy",
 							"dependsOn": [
 								{
-									"activity": "Lookup_Table_Watermark",
+									"activity": "Lookup_Current_Table_Watermark",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -136,7 +136,7 @@
 								"source": {
 									"type": "SqlServerSource",
 									"sqlReaderQuery": {
-										"value": "@concat(\n'SELECT *\nFROM ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_schema,\n'.',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_table,\n' WHERE ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.watermark_column,\n' > ''',\nactivity('Lookup_Last_Watermark').output.firstRow.last_watermark_value,\n''' AND ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.watermark_column,\n' <= ''',\nactivity('Lookup_Current_Watermark').output.firstRow.current_watermark,\n''''\n)",
+										"value": "@concat(\n'SELECT * FROM [',\nitem().source_schema,\n'].[',\nitem().source_table,\n'] WHERE [',\nactivity('Lookup_Table_Watermark').output.firstRow.watermark_column,\n'] > ''',\nactivity('Lookup_Table_Watermark').output.firstRow.last_watermark_value,\n''' AND [',\nactivity('Lookup_Table_Watermark').output.firstRow.watermark_column,\n'] <= ''',\nactivity('Lookup_Current_Table_Watermark').output.firstRow.current_watermark,\n''''\n)",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
@@ -470,6 +470,38 @@
 							"linkedServiceName": {
 								"referenceName": "LS_AZSQL_CONTROL",
 								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "Lookup_Current_Table_Watermark",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Lookup_Table_Watermark",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": "@concat(\n'SELECT CONVERT(VARCHAR(30), MAX([ModifiedDate]), 121) AS current_watermark ',\n'FROM [',\nitem().source_schema,\n'].[',\nitem().source_table,\n']'\n)",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "DS_SQL_CONTROL",
+									"type": "DatasetReference"
+								}
 							}
 						}
 					]
