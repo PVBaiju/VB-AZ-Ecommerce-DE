@@ -384,7 +384,21 @@
 									},
 									"last_watermark_value": {
 										"value": {
-											"value": "@activity('Lookup_Current_Watermark').output.firstRow.current_waterma",
+											"value": "@activity('Lookup_Current_Table_Watermark').output.firstRow.current_watermark",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"source_schema": {
+										"value": {
+											"value": "@item().source_schema",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"source_table": {
+										"value": {
+											"value": "@item().source_table",
 											"type": "Expression"
 										},
 										"type": "String"
