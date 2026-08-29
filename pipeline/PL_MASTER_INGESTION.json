@@ -267,8 +267,14 @@
 										},
 										"waitOnCompletion": true,
 										"parameters": {
-											"p_job_id": "@string(activity('Lookup_Get_Job_Metadata').output.firstRow.job_id)",
-											"p_pipeline_run_id": "@pipeline().RunId"
+											"p_job_id": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.job_id",
+												"type": "Expression"
+											},
+											"p_pipeline_run_id": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											}
 										}
 									}
 								}
