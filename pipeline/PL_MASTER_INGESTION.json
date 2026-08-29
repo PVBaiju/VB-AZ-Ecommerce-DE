@@ -71,10 +71,22 @@
 												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
 												"type": "Expression"
 											},
-											"p_source_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
-											"p_file_pattern": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
-											"p_target_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
-											"p_target_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+											"p_source_path": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+												"type": "Expression"
+											},
+											"p_file_pattern": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+												"type": "Expression"
+											},
+											"p_target_container": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+												"type": "Expression"
+											},
+											"p_target_path": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+												"type": "Expression"
+											},
 											"p_pipeline_run_id": {
 												"value": "@pipeline().RunId",
 												"type": "Expression"
@@ -110,16 +122,34 @@
 												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
 												"type": "Expression"
 											},
-											"p_source_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
-											"p_source_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
-											"p_file_pattern": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+											"p_source_container": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
+												"type": "Expression"
+											},
+											"p_source_path": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+												"type": "Expression"
+											},
+											"p_file_pattern": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+												"type": "Expression"
+											},
 											"p_sheet_name": {
 												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].sheet_name",
 												"type": "Expression"
 											},
-											"p_target_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
-											"p_target_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
-											"p_pipeline_run_id": "@pipeline().RunId"
+											"p_target_container": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+												"type": "Expression"
+											},
+											"p_target_path": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+												"type": "Expression"
+											},
+											"p_pipeline_run_id": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											}
 										}
 									}
 								}
@@ -143,13 +173,34 @@
 										},
 										"waitOnCompletion": true,
 										"parameters": {
-											"p_job_id": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
-											"p_source_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
-											"p_source_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
-											"p_file_pattern": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
-											"p_target_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
-											"p_target_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
-											"p_pipeline_run_id": "@pipeline().RunId"
+											"p_job_id": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+												"type": "Expression"
+											},
+											"p_source_container": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
+												"type": "Expression"
+											},
+											"p_source_path": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+												"type": "Expression"
+											},
+											"p_file_pattern": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+												"type": "Expression"
+											},
+											"p_target_container": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+												"type": "Expression"
+											},
+											"p_target_path": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+												"type": "Expression"
+											},
+											"p_pipeline_run_id": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											}
 										}
 									}
 								}
@@ -181,13 +232,25 @@
 												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].api_endpoint",
 												"type": "Expression"
 											},
-											"p_target_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
-											"p_target_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
-											"p_pipeline_run_id": "@pipeline().RunId"
+											"p_target_container": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+												"type": "Expression"
+											},
+											"p_target_path": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+												"type": "Expression"
+											},
+											"p_pipeline_run_id": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											}
 										}
 									}
 								}
 							]
+						},
+						{
+							"value": "Case5"
 						}
 					]
 				}

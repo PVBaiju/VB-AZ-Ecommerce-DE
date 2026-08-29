@@ -1,0 +1,226 @@
+{
+	"name": "PL_INGEST_SQL",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_SQL_To_Landing",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Current_Watermark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "@concat(\n'SELECT * FROM ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_schema,\n'.',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_table,\n' WHERE ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.watermark_column,\n' > ''',\nactivity('Lookup_Last_Watermark').output.firstRow.last_watermark_value,\n''' AND ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.watermark_column,\n' <= ''',\nactivity('Lookup_Current_Watermark').output.firstRow.current_watermark,\n''''\n)",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_SQLSERVER_SOURCE",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_schema": {
+								"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_schema",
+								"type": "Expression"
+							},
+							"p_table": {
+								"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_ADLS_PARQUET_SINK",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_container": {
+								"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.target_container",
+								"type": "Expression"
+							},
+							"p_folder_path": {
+								"value": "@concat(\n    activity('Lookup_SQL_Job_Metadata').output.firstRow.target_path,\n    '/',\n    formatDateTime(utcnow(),'yyyy/MM/dd')\n)",
+								"type": "Expression"
+							},
+							"p_file_name": {
+								"value": "@concat(\n    activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table,\n    '_',\n    formatDateTime(utcnow(),'ddMMyyyyHHmmss'),\n    '.parquet'\n)",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "Lookup_SQL_Job_Metadata",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT\n    j.job_id,\n    j.job_name,\n    j.load_type,\n    MAX(CASE WHEN d.dtls_key = 'source_schema' THEN d.dtls_value END) AS source_schema,\n    MAX(CASE WHEN d.dtls_key = 'source_table' THEN d.dtls_value END) AS source_table,\n    MAX(CASE WHEN d.dtls_key = 'watermark_column' THEN d.dtls_value END) AS watermark_column,\n    MAX(CASE WHEN d.dtls_key = 'primary_key_column' THEN d.dtls_value END) AS primary_key_column,\n    MAX(CASE WHEN d.dtls_key = 'target_container' THEN d.dtls_value END) AS target_container,\n    MAX(CASE WHEN d.dtls_key = 'target_path' THEN d.dtls_value END) AS target_path,\n    MAX(CASE WHEN d.dtls_key = 'file_format' THEN d.dtls_value END) AS file_format\nFROM dbo.vb_tbl_job j\nINNER JOIN dbo.vb_tbl_job_dtls d\n    ON j.job_id = d.job_id\nWHERE j.job_id = 14\n  AND j.active_flag = 1\nGROUP BY\n    j.job_id,\n    j.job_name,\n    j.load_type;",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_SQL_CONTROL",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Lookup_Last_Watermark",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Lookup_SQL_Job_Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT last_watermark_value\nFROM dbo.vb_tbl_watermark\nWHERE job_id = 14;",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_SQL_CONTROL",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Lookup_Current_Watermark",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Last_Watermark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "SELECT CONVERT(VARCHAR(30), MAX(ModifiedDate), 121) AS current_watermark\nFROM dbo.SalesOrders;",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_SQLSERVER_SOURCE",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_schema": {
+								"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_schema",
+								"type": "Expression"
+							}
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"p_job_id": {
+				"type": "string"
+			},
+			"p_source_schema": {
+				"type": "string"
+			},
+			"p_source_table": {
+				"type": "string"
+			},
+			"p_watermark_column": {
+				"type": "string"
+			},
+			"p_last_watermark": {
+				"type": "string"
+			},
+			"p_current_watermark": {
+				"type": "string"
+			},
+			"p_target_container": {
+				"type": "string"
+			},
+			"p_target_path": {
+				"type": "string"
+			},
+			"p_pipeline_run_id": {
+				"type": "string"
+			}
+		},
+		"annotations": []
+	}
+}
