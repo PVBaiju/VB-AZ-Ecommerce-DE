@@ -103,7 +103,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "SELECT\n    j.job_id,\n    j.job_name,\n    j.load_type,\n    MAX(CASE WHEN d.dtls_key = 'source_schema' THEN d.dtls_value END) AS source_schema,\n    MAX(CASE WHEN d.dtls_key = 'source_table' THEN d.dtls_value END) AS source_table,\n    MAX(CASE WHEN d.dtls_key = 'watermark_column' THEN d.dtls_value END) AS watermark_column,\n    MAX(CASE WHEN d.dtls_key = 'primary_key_column' THEN d.dtls_value END) AS primary_key_column,\n    MAX(CASE WHEN d.dtls_key = 'target_container' THEN d.dtls_value END) AS target_container,\n    MAX(CASE WHEN d.dtls_key = 'target_path' THEN d.dtls_value END) AS target_path,\n    MAX(CASE WHEN d.dtls_key = 'file_format' THEN d.dtls_value END) AS file_format\nFROM dbo.vb_tbl_job j\nINNER JOIN dbo.vb_tbl_job_dtls d\n    ON j.job_id = d.job_id\nWHERE j.job_id = 14\n  AND j.active_flag = 1\nGROUP BY\n    j.job_id,\n    j.job_name,\n    j.load_type;",
+							"value": "@concat(\n'SELECT\n    j.job_id,\n    j.job_name,\n    j.load_type,\n    MAX(CASE WHEN d.dtls_key = ''source_schema'' THEN d.dtls_value END) AS source_schema,\n    MAX(CASE WHEN d.dtls_key = ''source_table'' THEN d.dtls_value END) AS source_table,\n    MAX(CASE WHEN d.dtls_key = ''watermark_column'' THEN d.dtls_value END) AS watermark_column,\n    MAX(CASE WHEN d.dtls_key = ''primary_key_column'' THEN d.dtls_value END) AS primary_key_column,\n    MAX(CASE WHEN d.dtls_key = ''target_container'' THEN d.dtls_value END) AS target_container,\n    MAX(CASE WHEN d.dtls_key = ''target_path'' THEN d.dtls_value END) AS target_path,\n    MAX(CASE WHEN d.dtls_key = ''file_format'' THEN d.dtls_value END) AS file_format\nFROM dbo.vb_tbl_job j\nINNER JOIN dbo.vb_tbl_job_dtls d\n    ON j.job_id = d.job_id\nWHERE j.job_id = ',\npipeline().parameters.p_job_id,\n' AND j.active_flag = 1\nGROUP BY\n    j.job_id,\n    j.job_name,\n    j.load_type'\n)",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -138,7 +138,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "SELECT last_watermark_value\nFROM dbo.vb_tbl_watermark\nWHERE job_id = 14;",
+							"value": "@concat(\n'SELECT\n    last_watermark_value\nFROM dbo.vb_tbl_watermark\nWHERE job_id = ',\npipeline().parameters.p_job_id\n)",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -173,7 +173,7 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "SELECT CONVERT(VARCHAR(30), MAX(ModifiedDate), 121) AS current_watermark\nFROM dbo.SalesOrders;",
+							"value": "@concat(\n'SELECT\n    CONVERT(VARCHAR(30), MAX(',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.watermark_column,\n'), 121) AS current_watermark\nFROM ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_schema,\n'.',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_table\n)",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -185,6 +185,10 @@
 						"parameters": {
 							"p_schema": {
 								"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_schema",
+								"type": "Expression"
+							},
+							"p_table": {
+								"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table",
 								"type": "Expression"
 							}
 						}
