@@ -191,7 +191,7 @@
 											"type": "Expression"
 										},
 										"p_file_name": {
-											"value": "@concat(\n    toLower(item().source_table),\n    '_',\n    formatDateTime(utcnow(),'ddMMyyyyHHmmss'),\n    '.parquet'\n)",
+											"value": "@concat(\n    toLower(item().source_table),\n    '.parquet'\n)",
 											"type": "Expression"
 										}
 									}
