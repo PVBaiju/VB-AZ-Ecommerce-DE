@@ -507,14 +507,24 @@
 							"userProperties": [],
 							"typeProperties": {
 								"source": {
-									"type": "AzureSqlSource",
-									"sqlReaderQuery": "@concat(\n'SELECT CONVERT(VARCHAR(30), MAX([ModifiedDate]), 121) AS current_watermark ',\n'FROM [',\nitem().source_schema,\n'].[',\nitem().source_table,\n']'\n)",
+									"type": "SqlServerSource",
+									"sqlReaderQuery": {
+										"value": "@concat(\n    'SELECT CONVERT(VARCHAR(30), MAX(',\n    item().watermark_column,\n    '), 121) AS current_watermark FROM ',\n    item().source_schema,\n    '.',\n    item().source_table\n)",
+										"type": "Expression"
+									},
 									"queryTimeout": "02:00:00",
 									"partitionOption": "None"
 								},
 								"dataset": {
-									"referenceName": "DS_SQL_CONTROL",
-									"type": "DatasetReference"
+									"referenceName": "DS_SQLSERVER_SOURCE",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_schema": {
+											"value": "@item().source_schema",
+											"type": "Expression"
+										},
+										"p_table": "@item().source_table"
+									}
 								}
 							}
 						}
