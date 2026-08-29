@@ -1586,6 +1586,556 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/PL_INGEST_SQL')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup_SQL_Job_Metadata",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT\n    j.job_id,\n    j.job_name,\n    j.load_type,\n    MAX(CASE WHEN d.dtls_key = 'source_schema' THEN d.dtls_value END) AS source_schema,\n    MAX(CASE WHEN d.dtls_key = 'source_table' THEN d.dtls_value END) AS source_table,\n    MAX(CASE WHEN d.dtls_key = 'watermark_column' THEN d.dtls_value END) AS watermark_column,\n    MAX(CASE WHEN d.dtls_key = 'primary_key_column' THEN d.dtls_value END) AS primary_key_column,\n    MAX(CASE WHEN d.dtls_key = 'target_container' THEN d.dtls_value END) AS target_container,\n    MAX(CASE WHEN d.dtls_key = 'target_path' THEN d.dtls_value END) AS target_path,\n    MAX(CASE WHEN d.dtls_key = 'file_format' THEN d.dtls_value END) AS file_format\nFROM dbo.vb_tbl_job j\nINNER JOIN dbo.vb_tbl_job_dtls d\n    ON j.job_id = d.job_id\nWHERE j.job_id = 14\n  AND j.active_flag = 1\nGROUP BY\n    j.job_id,\n    j.job_name,\n    j.load_type;",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "DS_SQL_CONTROL",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "Lookup_SQL_Tables",
+						"type": "Lookup",
+						"dependsOn": [
+							{
+								"activity": "Lookup_SQL_Job_Metadata",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT\n    TABLE_SCHEMA AS source_schema,\n    TABLE_NAME AS source_table\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'\n  AND TABLE_SCHEMA = 'dbo'\n  AND TABLE_NAME IN\n  (\n      'Customers',\n      'Payments',\n      'Products',\n      'SalesOrderItems',\n      'SalesOrders',\n      'Stores'\n  )\nORDER BY TABLE_NAME;",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "DS_SQL_CONTROL",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach_SQL_Table",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup_SQL_Tables",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup_SQL_Tables').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Lookup_Table_Watermark",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "SELECT\n    watermark_column,\n    last_watermark_value\nFROM dbo.vb_tbl_watermark\nWHERE job_id = @{pipeline().parameters.p_job_id}\n  AND source_schema = '@{item().source_schema}'\n  AND source_table = '@{item().source_table}';",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "DS_SQL_CONTROL",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									}
+								},
+								{
+									"name": "Copy_SQL_To_Landing",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Lookup_Current_Table_Watermark",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SqlServerSource",
+											"sqlReaderQuery": {
+												"value": "@concat(\n'SELECT * FROM [',\nitem().source_schema,\n'].[',\nitem().source_table,\n'] WHERE [',\nactivity('Lookup_Table_Watermark').output.firstRow.watermark_column,\n'] > ''',\nactivity('Lookup_Table_Watermark').output.firstRow.last_watermark_value,\n''' AND [',\nactivity('Lookup_Table_Watermark').output.firstRow.watermark_column,\n'] <= ''',\nactivity('Lookup_Current_Table_Watermark').output.firstRow.current_watermark,\n''''\n)",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_SQLSERVER_SOURCE",
+											"type": "DatasetReference",
+											"parameters": {
+												"p_schema": {
+													"value": "@item().source_schema\n",
+													"type": "Expression"
+												},
+												"p_table": {
+													"value": "@item().source_table",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_ADLS_PARQUET_SINK",
+											"type": "DatasetReference",
+											"parameters": {
+												"p_container": {
+													"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.target_container",
+													"type": "Expression"
+												},
+												"p_folder_path": {
+													"value": "@concat(\n    activity('Lookup_SQL_Job_Metadata').output.firstRow.target_path,\n    '/',\n    formatDateTime(utcnow(),'yyyy/MM/dd')\n)",
+													"type": "Expression"
+												},
+												"p_file_name": {
+													"value": "@concat(\n    activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table,\n    '_',\n    formatDateTime(utcnow(),'ddMMyyyyHHmmss'),\n    '.parquet'\n)",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "SP_End_Log_Succes_SQL",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "SP_Update_Watermark",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[vb_end_log_entry]",
+										"storedProcedureParameters": {
+											"error": {
+												"value": "'NULL'",
+												"type": "String"
+											},
+											"job_id": {
+												"value": {
+													"value": "@pipeline().parameters.p_job_id",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"job_status": {
+												"value": "'SUCCESS'",
+												"type": "String"
+											},
+											"pipeline_run_id": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"records_read": {
+												"value": {
+													"value": "@activity('Copy_SQL_To_Landing').output.rowsRead",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"records_written": {
+												"value": {
+													"value": "@activity('Copy_SQL_To_Landing').output.rowsCopied",
+													"type": "Expression"
+												},
+												"type": "Int64"
+											},
+											"source_file": {
+												"value": {
+													"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"target_path": {
+												"value": {
+													"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.target_path",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AZSQL_CONTROL",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "SP_End_Log_Failure_SQL",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy_SQL_To_Landing",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[vb_end_log_entry]",
+										"storedProcedureParameters": {
+											"error": {
+												"value": {
+													"value": "@activity('Copy_SQL_To_Landing').error.message",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"job_id": {
+												"value": {
+													"value": "@pipeline().parameters.p_job_id",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"job_status": {
+												"value": "'FAILED'",
+												"type": "String"
+											},
+											"pipeline_run_id": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"records_read": {
+												"value": "'NULL'",
+												"type": "String"
+											},
+											"records_written": {
+												"value": "'NULL'",
+												"type": "String"
+											},
+											"source_file": {
+												"value": {
+													"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"target_path": {
+												"value": {
+													"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.target_path",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AZSQL_CONTROL",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "SP_Update_Watermark",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy_SQL_To_Landing",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[vb_update_watermark]",
+										"storedProcedureParameters": {
+											"job_id": {
+												"value": {
+													"value": "@pipeline().parameters.p_job_id",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"last_watermark_value": {
+												"value": {
+													"value": "@activity('Lookup_Current_Table_Watermark').output.firstRow.current_watermark",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"source_schema": {
+												"value": {
+													"value": "@item().source_schema",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"source_table": {
+												"value": {
+													"value": "@item().source_table",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AZSQL_CONTROL",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "SP_End_Log_Failure_Watermark",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "SP_Update_Watermark",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[vb_end_log_entry]",
+										"storedProcedureParameters": {
+											"error": {
+												"value": {
+													"value": "@activity('SP_Update_Watermark').error.message",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"job_id": {
+												"value": {
+													"value": "@pipeline().parameters.p_job_id",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"job_status": {
+												"value": "'FAILED'",
+												"type": "String"
+											},
+											"pipeline_run_id": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"records_read": {
+												"value": "'NULL'",
+												"type": "String"
+											},
+											"records_written": {
+												"value": "'NULL'",
+												"type": "String"
+											},
+											"source_file": {
+												"value": {
+													"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"target_path": {
+												"value": {
+													"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.target_path",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AZSQL_CONTROL",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Lookup_Current_Table_Watermark",
+									"type": "Lookup",
+									"dependsOn": [
+										{
+											"activity": "Lookup_Table_Watermark",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": "@concat(\n'SELECT CONVERT(VARCHAR(30), MAX([ModifiedDate]), 121) AS current_watermark ',\n'FROM [',\nitem().source_schema,\n'].[',\nitem().source_table,\n']'\n)",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "DS_SQL_CONTROL",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"p_job_id": {
+						"type": "string"
+					},
+					"p_pipeline_run_id": {
+						"type": "string"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_SQL_CONTROL')]",
+				"[concat(variables('factoryId'), '/datasets/DS_SQLSERVER_SOURCE')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_PARQUET_SINK')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_AZSQL_CONTROL')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/PL_MASTER_INGESTION')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -1618,7 +2168,7 @@
 								"type": "DatasetReference",
 								"parameters": {}
 							},
-							"firstRowOnly": false
+							"firstRowOnly": true
 						}
 					},
 					{
@@ -1635,7 +2185,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"on": {
-								"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_type",
+								"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_type",
 								"type": "Expression"
 							},
 							"cases": [
@@ -1857,8 +2407,14 @@
 												},
 												"waitOnCompletion": true,
 												"parameters": {
-													"p_job_id": "@string(activity('Lookup_Get_Job_Metadata').output.firstRow.job_id)",
-													"p_pipeline_run_id": "@pipeline().RunId"
+													"p_job_id": {
+														"value": "@string(activity('Lookup_Get_Job_Metadata').output.firstRow.job_id)",
+														"type": "Expression"
+													},
+													"p_pipeline_run_id": {
+														"value": "@pipeline().RunId",
+														"type": "Expression"
+													}
 												}
 											}
 										}
@@ -1947,7 +2503,7 @@
 							"storedProcedureParameters": {
 								"job_id": {
 									"value": {
-										"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+										"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.job_id",
 										"type": "Expression"
 									},
 									"type": "Int32"
@@ -2386,502 +2942,6 @@
 				"typeProperties": {}
 			},
 			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/PL_INGEST_SQL')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Copy_SQL_To_Landing",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "Lookup_Current_Watermark",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "SqlServerSource",
-								"sqlReaderQuery": {
-									"value": "@concat(\n'SELECT *\nFROM ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_schema,\n'.',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_table,\n' WHERE ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.watermark_column,\n' > ''',\nactivity('Lookup_Last_Watermark').output.firstRow.last_watermark_value,\n''' AND ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.watermark_column,\n' <= ''',\nactivity('Lookup_Current_Watermark').output.firstRow.current_watermark,\n''''\n)",
-									"type": "Expression"
-								},
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"sink": {
-								"type": "ParquetSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "ParquetWriteSettings"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "DS_SQLSERVER_SOURCE",
-								"type": "DatasetReference",
-								"parameters": {
-									"p_schema": {
-										"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_schema",
-										"type": "Expression"
-									},
-									"p_table": {
-										"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table",
-										"type": "Expression"
-									}
-								}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "DS_ADLS_PARQUET_SINK",
-								"type": "DatasetReference",
-								"parameters": {
-									"p_container": {
-										"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.target_container",
-										"type": "Expression"
-									},
-									"p_folder_path": {
-										"value": "@concat(\n    activity('Lookup_SQL_Job_Metadata').output.firstRow.target_path,\n    '/',\n    formatDateTime(utcnow(),'yyyy/MM/dd')\n)",
-										"type": "Expression"
-									},
-									"p_file_name": {
-										"value": "@concat(\n    activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table,\n    '_',\n    formatDateTime(utcnow(),'ddMMyyyyHHmmss'),\n    '.parquet'\n)",
-										"type": "Expression"
-									}
-								}
-							}
-						]
-					},
-					{
-						"name": "Lookup_SQL_Job_Metadata",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderQuery": {
-									"value": "@concat(\n'SELECT\n    j.job_id,\n    j.job_name,\n    j.load_type,\n    MAX(CASE WHEN d.dtls_key = ''source_schema'' THEN d.dtls_value END) AS source_schema,\n    MAX(CASE WHEN d.dtls_key = ''source_table'' THEN d.dtls_value END) AS source_table,\n    MAX(CASE WHEN d.dtls_key = ''watermark_column'' THEN d.dtls_value END) AS watermark_column,\n    MAX(CASE WHEN d.dtls_key = ''primary_key_column'' THEN d.dtls_value END) AS primary_key_column,\n    MAX(CASE WHEN d.dtls_key = ''target_container'' THEN d.dtls_value END) AS target_container,\n    MAX(CASE WHEN d.dtls_key = ''target_path'' THEN d.dtls_value END) AS target_path,\n    MAX(CASE WHEN d.dtls_key = ''file_format'' THEN d.dtls_value END) AS file_format\nFROM dbo.vb_tbl_job j\nINNER JOIN dbo.vb_tbl_job_dtls d\n    ON j.job_id = d.job_id\nWHERE j.job_id = ',\npipeline().parameters.p_job_id,\n' AND j.active_flag = 1\nGROUP BY\n    j.job_id,\n    j.job_name,\n    j.load_type'\n)",
-									"type": "Expression"
-								},
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"dataset": {
-								"referenceName": "DS_SQL_CONTROL",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						}
-					},
-					{
-						"name": "Lookup_Last_Watermark",
-						"type": "Lookup",
-						"dependsOn": [
-							{
-								"activity": "Lookup_SQL_Job_Metadata",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderQuery": {
-									"value": "@concat(\n'SELECT\n    last_watermark_value\nFROM dbo.vb_tbl_watermark\nWHERE job_id = ',\npipeline().parameters.p_job_id\n)",
-									"type": "Expression"
-								},
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"dataset": {
-								"referenceName": "DS_SQL_CONTROL",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						}
-					},
-					{
-						"name": "Lookup_Current_Watermark",
-						"type": "Lookup",
-						"dependsOn": [
-							{
-								"activity": "Lookup_Last_Watermark",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "SqlServerSource",
-								"sqlReaderQuery": {
-									"value": "@concat(\n'SELECT\n    CONVERT(VARCHAR(30), MAX(',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.watermark_column,\n'), 121) AS current_watermark\nFROM ',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_schema,\n'.',\nactivity('Lookup_SQL_Job_Metadata').output.firstRow.source_table\n)",
-									"type": "Expression"
-								},
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"dataset": {
-								"referenceName": "DS_SQLSERVER_SOURCE",
-								"type": "DatasetReference",
-								"parameters": {
-									"p_schema": {
-										"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_schema",
-										"type": "Expression"
-									},
-									"p_table": {
-										"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table",
-										"type": "Expression"
-									}
-								}
-							}
-						}
-					},
-					{
-						"name": "SP_End_Log_Succes_SQL",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "SP_Update_Watermark",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": "[[dbo].[vb_end_log_entry]",
-							"storedProcedureParameters": {
-								"error": {
-									"value": "'NULL'",
-									"type": "String"
-								},
-								"job_id": {
-									"value": {
-										"value": "@pipeline().parameters.p_job_id",
-										"type": "Expression"
-									},
-									"type": "Int32"
-								},
-								"job_status": {
-									"value": "'SUCCESS'",
-									"type": "String"
-								},
-								"pipeline_run_id": {
-									"value": {
-										"value": "@pipeline().RunId",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"records_read": {
-									"value": {
-										"value": "@activity('Copy_SQL_To_Landing').output.rowsRead",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"records_written": {
-									"value": {
-										"value": "@activity('Copy_SQL_To_Landing').output.rowsCopied",
-										"type": "Expression"
-									},
-									"type": "Int64"
-								},
-								"source_file": {
-									"value": {
-										"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"target_path": {
-									"value": {
-										"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.target_path",
-										"type": "Expression"
-									},
-									"type": "String"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS_AZSQL_CONTROL",
-							"type": "LinkedServiceReference"
-						}
-					},
-					{
-						"name": "SP_End_Log_Failure_SQL",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "Copy_SQL_To_Landing",
-								"dependencyConditions": [
-									"Failed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": "[[dbo].[vb_end_log_entry]",
-							"storedProcedureParameters": {
-								"error": {
-									"value": {
-										"value": "@activity('Copy_SQL_To_Landing').error.message",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"job_id": {
-									"value": {
-										"value": "@pipeline().parameters.p_job_id",
-										"type": "Expression"
-									},
-									"type": "Int32"
-								},
-								"job_status": {
-									"value": "'FAILED'",
-									"type": "String"
-								},
-								"pipeline_run_id": {
-									"value": {
-										"value": "@pipeline().RunId",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"records_read": {
-									"value": "'NULL'",
-									"type": "String"
-								},
-								"records_written": {
-									"value": "'NULL'",
-									"type": "String"
-								},
-								"source_file": {
-									"value": {
-										"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"target_path": {
-									"value": {
-										"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.target_path",
-										"type": "Expression"
-									},
-									"type": "String"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS_AZSQL_CONTROL",
-							"type": "LinkedServiceReference"
-						}
-					},
-					{
-						"name": "SP_Update_Watermark",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "Copy_SQL_To_Landing",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": "[[dbo].[vb_update_watermark]",
-							"storedProcedureParameters": {
-								"job_id": {
-									"value": {
-										"value": "@pipeline().parameters.p_job_id",
-										"type": "Expression"
-									},
-									"type": "Int32"
-								},
-								"last_watermark_value": {
-									"value": {
-										"value": "@activity('Lookup_Current_Watermark').output.firstRow.current_waterma",
-										"type": "Expression"
-									},
-									"type": "String"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS_AZSQL_CONTROL",
-							"type": "LinkedServiceReference"
-						}
-					},
-					{
-						"name": "SP_End_Log_Failure_Watermark",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [
-							{
-								"activity": "SP_Update_Watermark",
-								"dependencyConditions": [
-									"Failed"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": "[[dbo].[vb_end_log_entry]",
-							"storedProcedureParameters": {
-								"error": {
-									"value": {
-										"value": "@activity('SP_Update_Watermark').error.message",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"job_id": {
-									"value": {
-										"value": "@pipeline().parameters.p_job_id",
-										"type": "Expression"
-									},
-									"type": "Int32"
-								},
-								"job_status": {
-									"value": "'FAILED'",
-									"type": "String"
-								},
-								"pipeline_run_id": {
-									"value": {
-										"value": "@pipeline().RunId",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"records_read": {
-									"value": "'NULL'",
-									"type": "String"
-								},
-								"records_written": {
-									"value": "'NULL'",
-									"type": "String"
-								},
-								"source_file": {
-									"value": {
-										"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table",
-										"type": "Expression"
-									},
-									"type": "String"
-								},
-								"target_path": {
-									"value": {
-										"value": "@activity('Lookup_SQL_Job_Metadata').output.firstRow.target_path",
-										"type": "Expression"
-									},
-									"type": "String"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS_AZSQL_CONTROL",
-							"type": "LinkedServiceReference"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"parameters": {
-					"p_job_id": {
-						"type": "string"
-					},
-					"p_pipeline_run_id": {
-						"type": "string"
-					}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/DS_SQLSERVER_SOURCE')]",
-				"[concat(variables('factoryId'), '/datasets/DS_ADLS_PARQUET_SINK')]",
-				"[concat(variables('factoryId'), '/datasets/DS_SQL_CONTROL')]",
-				"[concat(variables('factoryId'), '/linkedServices/LS_AZSQL_CONTROL')]"
-			]
 		}
 	]
 }
