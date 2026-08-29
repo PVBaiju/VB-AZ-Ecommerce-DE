@@ -1641,16 +1641,16 @@
 						"userProperties": [],
 						"typeProperties": {
 							"source": {
-								"type": "AzureSqlSource",
+								"type": "SqlServerSource",
 								"sqlReaderQuery": {
-									"value": "SELECT\n    TABLE_SCHEMA AS source_schema,\n    TABLE_NAME AS source_table\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'\n  AND TABLE_SCHEMA = 'dbo'\n  AND TABLE_NAME IN\n  (\n      'Customers',\n      'Payments',\n      'Products',\n      'SalesOrderItems',\n      'SalesOrders',\n      'Stores'\n  )\nORDER BY TABLE_NAME;",
+									"value": "SELECT\n    TABLE_SCHEMA AS source_schema,\n    TABLE_NAME AS source_table,\n    'ModifiedDate' AS watermark_column,\n    'INCREMENTAL' AS load_type\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'\n  AND TABLE_SCHEMA = 'dbo'\n  AND TABLE_NAME IN\n  (\n      'Customers',\n      'Payments',\n      'Products',\n      'SalesOrderItems',\n      'SalesOrders',\n      'Stores'\n  )\nORDER BY TABLE_NAME;",
 									"type": "Expression"
 								},
 								"queryTimeout": "02:00:00",
 								"partitionOption": "None"
 							},
 							"dataset": {
-								"referenceName": "DS_SQL_CONTROL",
+								"referenceName": "DS_SQLSERVER_TABLE_LIST",
 								"type": "DatasetReference",
 								"parameters": {}
 							},
@@ -1779,11 +1779,11 @@
 													"type": "Expression"
 												},
 												"p_folder_path": {
-													"value": "@concat(\n    activity('Lookup_SQL_Job_Metadata').output.firstRow.target_path,\n    '/',\n    formatDateTime(utcnow(),'yyyy/MM/dd')\n)",
+													"value": "@concat(\n    'ecommerce/sql/',\n    toLower(item().source_table),\n    '/',\n    formatDateTime(utcNow(),'yyyy/MM/dd')\n)\n)",
 													"type": "Expression"
 												},
 												"p_file_name": {
-													"value": "@concat(\n    activity('Lookup_SQL_Job_Metadata').output.firstRow.source_table,\n    '_',\n    formatDateTime(utcnow(),'ddMMyyyyHHmmss'),\n    '.parquet'\n)",
+													"value": "@concat(\n    toLower(item().source_table),\n    '_',\n    formatDateTime(utcnow(),'ddMMyyyyHHmmss'),\n    '.parquet'\n)",
 													"type": "Expression"
 												}
 											}
@@ -2099,15 +2099,24 @@
 									"userProperties": [],
 									"typeProperties": {
 										"source": {
-											"type": "AzureSqlSource",
-											"sqlReaderQuery": "@concat(\n'SELECT CONVERT(VARCHAR(30), MAX([ModifiedDate]), 121) AS current_watermark ',\n'FROM [',\nitem().source_schema,\n'].[',\nitem().source_table,\n']'\n)",
+											"type": "SqlServerSource",
+											"sqlReaderQuery": {
+												"value": "@concat(\n    'SELECT CONVERT(VARCHAR(30), MAX(',\n    item().watermark_column,\n    '), 121) AS current_watermark FROM ',\n    item().source_schema,\n    '.',\n    item().source_table\n)",
+												"type": "Expression"
+											},
 											"queryTimeout": "02:00:00",
 											"partitionOption": "None"
 										},
 										"dataset": {
-											"referenceName": "DS_SQL_CONTROL",
+											"referenceName": "DS_SQLSERVER_SOURCE",
 											"type": "DatasetReference",
-											"parameters": {}
+											"parameters": {
+												"p_schema": {
+													"value": "@item().source_schema",
+													"type": "Expression"
+												},
+												"p_table": "@item().source_table"
+											}
 										}
 									}
 								}
@@ -2130,6 +2139,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_CONTROL')]",
+				"[concat(variables('factoryId'), '/datasets/DS_SQLSERVER_TABLE_LIST')]",
 				"[concat(variables('factoryId'), '/datasets/DS_SQLSERVER_SOURCE')]",
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_PARQUET_SINK')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AZSQL_CONTROL')]"
@@ -2942,6 +2952,24 @@
 				"typeProperties": {}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_SQLSERVER_TABLE_LIST')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SQLSERVER_ECOMMERCE_ONPREM",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SQLSERVER_ECOMMERCE_ONPREM')]"
+			]
 		}
 	]
 }
