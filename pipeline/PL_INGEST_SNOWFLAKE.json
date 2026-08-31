@@ -18,19 +18,28 @@
 					"source": {
 						"type": "SnowflakeV2Source",
 						"exportSettings": {
-							"type": "SnowflakeExportCopyCommand"
+							"type": "SnowflakeExportCopyCommand",
+							"storageIntegration": "SNOWFLAKE_AZURE_INTEGRATION"
 						}
 					},
 					"sink": {
 						"type": "ParquetSink",
 						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings"
+							"type": "AzureBlobFSWriteSettings",
+							"copyBehavior": "MergeFiles"
 						},
 						"formatSettings": {
 							"type": "ParquetWriteSettings"
 						}
 					},
-					"enableStaging": false,
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "LS_ADLS_SNOWFLAKE_STAGE",
+							"type": "LinkedServiceReference"
+						},
+						"path": "snowflake-stage/orders"
+					},
 					"translator": {
 						"type": "TabularTranslator",
 						"typeConversion": true,
