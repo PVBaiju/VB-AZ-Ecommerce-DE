@@ -8,9 +8,6 @@
 		"parameters": {
 			"p_folder_path": {
 				"type": "string"
-			},
-			"p_file_name": {
-				"type": "string"
 			}
 		},
 		"annotations": [],
@@ -18,10 +15,6 @@
 		"typeProperties": {
 			"location": {
 				"type": "SftpLocation",
-				"fileName": {
-					"value": "@dataset().p_file_name",
-					"type": "Expression"
-				},
 				"folderPath": {
 					"value": "@dataset().p_folder_path",
 					"type": "Expression"

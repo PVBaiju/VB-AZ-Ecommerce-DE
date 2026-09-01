@@ -302,7 +302,10 @@
 												"value": "@pipeline().parameters.p_job_id",
 												"type": "Expression"
 											},
-											"p_pipeline_run_id": "@pipeline().RunId",
+											"p_pipeline_run_id": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											},
 											"p_schema": {
 												"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_schema",
 												"type": "Expression"
@@ -332,12 +335,19 @@
 							"value": "SFTP",
 							"activities": [
 								{
-									"name": "Wait2",
-									"type": "Wait",
+									"name": "EP_SFTP",
+									"type": "ExecutePipeline",
 									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
-										"waitTimeInSeconds": 1
+										"pipeline": {
+											"referenceName": "PL_INGEST_SFTP",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true
 									}
 								}
 							]

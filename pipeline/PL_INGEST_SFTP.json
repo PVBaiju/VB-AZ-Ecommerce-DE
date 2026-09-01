@@ -1,0 +1,98 @@
+{
+	"name": "PL_INGEST_SFTP",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_SFTP_To_Landing",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "SftpReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "@pipeline().parameters.p_source_path",
+							"wildcardFileName": "@pipeline().parameters.p_file_pattern",
+							"enablePartitionDiscovery": false,
+							"disableChunking": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_SFTP_SOURCE",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_folder_path": {
+								"value": "@pipeline().parameters.p_source_path",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_ADLS_PARQUET_SINK",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_container": "@pipeline().parameters.p_target_container",
+							"p_folder_path": "@pipeline().parameters.p_target_path",
+							"p_file_name": "@concat(     'TRANSACTIONS_',     formatDateTime(utcnow(),'yyyyMMdd_HHmmss'),     '.parquet' )"
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"p_job_id": {
+				"type": "string"
+			},
+			"p_pipeline_run_id": {
+				"type": "string"
+			},
+			"p_source_path": {
+				"type": "string"
+			},
+			"p_file_pattern": {
+				"type": "string"
+			},
+			"p_target_container": {
+				"type": "string"
+			},
+			"p_target_path": {
+				"type": "string"
+			}
+		},
+		"annotations": []
+	}
+}
