@@ -15,6 +15,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_AZSQL_CONTROL'"
 		},
+		"LS_SFTP_ECOMMERCE_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_SFTP_ECOMMERCE'"
+		},
 		"LS_SNOWFLAKE_ECOMMERCE_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_SNOWFLAKE_ECOMMERCE'"
@@ -22,10 +26,6 @@
 		"LS_SQLSERVER_ECOMMERCE_ONPREM_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_SQLSERVER_ECOMMERCE_ONPREM'"
-		},
-		"LS_SFTP_ECOMMERCE_password": {
-			"type": "secureString",
-			"metadata": "Secure string for 'password' of 'LS_SFTP_ECOMMERCE'"
 		},
 		"Ecommerce_REST_API_properties_typeProperties_url": {
 			"type": "string",
@@ -46,6 +46,18 @@
 		"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "sqladminvb"
+		},
+		"LS_SFTP_ECOMMERCE_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "stvbwecommercesftp.blob.core.windows.net"
+		},
+		"LS_SFTP_ECOMMERCE_properties_typeProperties_hostKeyFingerprint": {
+			"type": "string",
+			"defaultValue": "ecdsa-sha2-nistp256 256 5b:cc:86:7b:0d:ee:c6:4b:92:f5:8e:47:74:a3:0c:ff"
+		},
+		"LS_SFTP_ECOMMERCE_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "stvbwecommercesftp.sftpecommerce"
 		},
 		"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_database": {
 			"type": "string",
@@ -70,18 +82,6 @@
 		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "vb-admin"
-		},
-		"LS_SFTP_ECOMMERCE_properties_typeProperties_host": {
-			"type": "string",
-			"defaultValue": "stvbwecommercesftp.blob.core.windows.net"
-		},
-		"LS_SFTP_ECOMMERCE_properties_typeProperties_hostKeyFingerprint": {
-			"type": "string",
-			"defaultValue": "ecdsa-sha2-nistp256 256 5b:cc:86:7b:0d:ee:c6:4b:92:f5:8e:47:74:a3:0c:ff"
-		},
-		"LS_SFTP_ECOMMERCE_properties_typeProperties_userName": {
-			"type": "string",
-			"defaultValue": "stvbwecommercesftp.sftpecommerce"
 		}
 	},
 	"variables": {
@@ -1617,6 +1617,275 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_REST_API_SOURCE')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_PARQUET_SINK')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_AZSQL_CONTROL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_INGEST_SFTP')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_SFTP_To_Landing",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "SftpReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": {
+										"value": "@pipeline().parameters.p_source_path",
+										"type": "Expression"
+									},
+									"wildcardFileName": {
+										"value": "@pipeline().parameters.p_file_pattern",
+										"type": "Expression"
+									},
+									"enablePartitionDiscovery": false,
+									"disableChunking": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_SFTP_SOURCE",
+								"type": "DatasetReference",
+								"parameters": {
+									"p_folder_path": {
+										"value": "@pipeline().parameters.p_source_path",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_ADLS_PARQUET_SINK",
+								"type": "DatasetReference",
+								"parameters": {
+									"p_container": "@pipeline().parameters.p_target_container",
+									"p_folder_path": "@pipeline().parameters.p_target_path",
+									"p_file_name": "@concat(     'TRANSACTIONS_',     formatDateTime(utcnow(),'yyyyMMdd_HHmmss'),     '.parquet' )"
+								}
+							}
+						]
+					},
+					{
+						"name": "SP_End_Log_Success_SFTP",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy_SFTP_To_Landing",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[vb_end_log_entry]",
+							"storedProcedureParameters": {
+								"error": {
+									"value": "'NULL'",
+									"type": "String"
+								},
+								"job_id": {
+									"value": {
+										"value": "@pipeline().parameters.p_job_id",
+										"type": "Expression"
+									},
+									"type": "Int32"
+								},
+								"job_status": {
+									"value": "'SUCCESS'",
+									"type": "String"
+								},
+								"pipeline_run_id": {
+									"value": {
+										"value": "@pipeline().parameters.p_pipeline_run_id",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"records_read": {
+									"value": {
+										"value": "@activity('Copy_SFTP_To_Landing').output.rowsRead",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"records_written": {
+									"value": {
+										"value": "@activity('Copy_SFTP_To_Landing').output.rowsCopied",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"source_file": {
+									"value": {
+										"value": "@pipeline().parameters.p_file_pattern",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"target_path": {
+									"value": {
+										"value": "@pipeline().parameters.p_file_pattern",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_AZSQL_CONTROL",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "SP_End_Log_Failure_SFTP",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy_SFTP_To_Landing",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[vb_end_log_entry]",
+							"storedProcedureParameters": {
+								"error": {
+									"value": {
+										"value": "@activity('Copy_SFTP_To_Landing').error.message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"job_id": {
+									"value": {
+										"value": "@pipeline().parameters.p_job_id",
+										"type": "Expression"
+									},
+									"type": "Int32"
+								},
+								"job_status": {
+									"value": "'FAILED'",
+									"type": "String"
+								},
+								"pipeline_run_id": {
+									"value": {
+										"value": "@pipeline().parameters.p_pipeline_run_id",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"records_read": {
+									"value": "0",
+									"type": "Int64"
+								},
+								"records_written": {
+									"value": "0",
+									"type": "Int64"
+								},
+								"source_file": {
+									"value": {
+										"value": "@pipeline().parameters.p_file_pattern",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"target_path": {
+									"value": {
+										"value": "@pipeline().parameters.p_target_path",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_AZSQL_CONTROL",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"p_job_id": {
+						"type": "string"
+					},
+					"p_pipeline_run_id": {
+						"type": "string"
+					},
+					"p_source_path": {
+						"type": "string"
+					},
+					"p_file_pattern": {
+						"type": "string"
+					},
+					"p_target_container": {
+						"type": "string"
+					},
+					"p_target_path": {
+						"type": "string"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_SFTP_SOURCE')]",
 				"[concat(variables('factoryId'), '/datasets/DS_ADLS_PARQUET_SINK')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AZSQL_CONTROL')]"
 			]
@@ -3338,8 +3607,14 @@
 												},
 												"waitOnCompletion": true,
 												"parameters": {
-													"p_job_id": "@pipeline().parameters.p_job_id",
-													"p_pipeline_run_id": "@pipeline().RunId",
+													"p_job_id": {
+														"value": "@pipeline().parameters.p_job_id",
+														"type": "Expression"
+													},
+													"p_pipeline_run_id": {
+														"value": "@pipeline().RunId",
+														"type": "Expression"
+													},
 													"p_source_path": {
 														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_path",
 														"type": "Expression"
@@ -3365,12 +3640,20 @@
 									"value": "MULTIPLE_FILE",
 									"activities": [
 										{
-											"name": "Wait3",
-											"type": "Wait",
+											"name": "EP_MULTIPLE_FILE",
+											"type": "ExecutePipeline",
 											"dependsOn": [],
+											"policy": {
+												"secureInput": false
+											},
 											"userProperties": [],
 											"typeProperties": {
-												"waitTimeInSeconds": 1
+												"pipeline": {
+													"referenceName": "PL_INGEST_MULTIPLE_FILE",
+													"type": "PipelineReference"
+												},
+												"waitOnCompletion": true,
+												"parameters": {}
 											}
 										}
 									]
@@ -3463,7 +3746,8 @@
 				"[concat(variables('factoryId'), '/pipelines/PL_INGEST_REST_API')]",
 				"[concat(variables('factoryId'), '/pipelines/PL_INGEST_SQL')]",
 				"[concat(variables('factoryId'), '/pipelines/PL_INGEST_SNOWFLAKE')]",
-				"[concat(variables('factoryId'), '/pipelines/PL_INGEST_SFTP')]"
+				"[concat(variables('factoryId'), '/pipelines/PL_INGEST_SFTP')]",
+				"[concat(variables('factoryId'), '/pipelines/PL_INGEST_MULTIPLE_FILE')]"
 			]
 		},
 		{
@@ -3717,6 +4001,41 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DS_SFTP_SOURCE')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SFTP_ECOMMERCE",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"p_folder_path": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "SftpLocation",
+						"folderPath": {
+							"value": "@dataset().p_folder_path",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SFTP_ECOMMERCE')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_SNOWFLAKE_ORDERS')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -3935,6 +4254,28 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/LS_SFTP_ECOMMERCE')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "Sftp",
+				"typeProperties": {
+					"host": "[parameters('LS_SFTP_ECOMMERCE_properties_typeProperties_host')]",
+					"port": 22,
+					"skipHostKeyValidation": false,
+					"hostKeyFingerprint": "[parameters('LS_SFTP_ECOMMERCE_properties_typeProperties_hostKeyFingerprint')]",
+					"authenticationType": "Basic",
+					"userName": "[parameters('LS_SFTP_ECOMMERCE_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_SFTP_ECOMMERCE_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LS_SNOWFLAKE_ECOMMERCE')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -3999,70 +4340,13 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/LS_SFTP_ECOMMERCE')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "Sftp",
-				"typeProperties": {
-					"host": "[parameters('LS_SFTP_ECOMMERCE_properties_typeProperties_host')]",
-					"port": 22,
-					"skipHostKeyValidation": false,
-					"hostKeyFingerprint": "[parameters('LS_SFTP_ECOMMERCE_properties_typeProperties_hostKeyFingerprint')]",
-					"authenticationType": "Basic",
-					"userName": "[parameters('LS_SFTP_ECOMMERCE_properties_typeProperties_userName')]",
-					"password": {
-						"type": "SecureString",
-						"value": "[parameters('LS_SFTP_ECOMMERCE_password')]"
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DS_SFTP_SOURCE')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_SFTP_ECOMMERCE",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"p_folder_path": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "SftpLocation",
-						"folderPath": {
-							"value": "@dataset().p_folder_path",
-							"type": "Expression"
-						}
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_SFTP_ECOMMERCE')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/PL_INGEST_SFTP')]",
+			"name": "[concat(parameters('factoryName'), '/PL_INGEST_MULTIPLE_FILE')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "Copy_SFTP_To_Landing",
+						"name": "Copy_Multiple_Files_To_Landing",
 						"type": "Copy",
 						"dependsOn": [],
 						"policy": {
@@ -4075,68 +4359,54 @@
 						"userProperties": [],
 						"typeProperties": {
 							"source": {
-								"type": "DelimitedTextSource",
+								"type": "BinarySource",
 								"storeSettings": {
-									"type": "SftpReadSettings",
+									"type": "AzureBlobFSReadSettings",
 									"recursive": true,
 									"wildcardFolderPath": "@pipeline().parameters.p_source_path",
 									"wildcardFileName": "@pipeline().parameters.p_file_pattern",
-									"enablePartitionDiscovery": false,
-									"disableChunking": false
+									"deleteFilesAfterCompletion": false
 								},
 								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
+									"type": "BinaryReadSettings"
 								}
 							},
 							"sink": {
-								"type": "ParquetSink",
+								"type": "BinarySink",
 								"storeSettings": {
 									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "ParquetWriteSettings"
 								}
 							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
+							"enableStaging": false
 						},
 						"inputs": [
 							{
-								"referenceName": "DS_SFTP_SOURCE",
+								"referenceName": "DS_ADLS_MULTIPLE_FILE_SOURCE",
 								"type": "DatasetReference",
 								"parameters": {
-									"p_folder_path": {
-										"value": "@pipeline().parameters.p_source_path",
-										"type": "Expression"
-									}
+									"p_folder_path": "@pipeline().parameters.p_source_path"
 								}
 							}
 						],
 						"outputs": [
 							{
-								"referenceName": "DS_ADLS_PARQUET_SINK",
+								"referenceName": "DS_ADLS_MULTIPLE_FILE_SINK",
 								"type": "DatasetReference",
 								"parameters": {
-									"p_container": "@pipeline().parameters.p_target_container",
-									"p_folder_path": "@pipeline().parameters.p_target_path",
-									"p_file_name": "@concat(     'TRANSACTIONS_',     formatDateTime(utcnow(),'yyyyMMdd_HHmmss'),     '.parquet' )"
+									"p_folder_path": {
+										"value": "@pipeline().parameters.p_target_path",
+										"type": "Expression"
+									}
 								}
 							}
 						]
 					},
 					{
-						"name": "SP_End_Log_Success_SFTP",
+						"name": "SP_End_Log_Success_MULTIPLE_FILE",
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
-								"activity": "Copy_SFTP_To_Landing",
+								"activity": "Copy_Multiple_Files_To_Landing",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -4154,7 +4424,7 @@
 							"storedProcedureName": "[[dbo].[vb_end_log_entry]",
 							"storedProcedureParameters": {
 								"error": {
-									"value": "'NULL'",
+									"value": null,
 									"type": "String"
 								},
 								"job_id": {
@@ -4162,7 +4432,7 @@
 									"type": "Int32"
 								},
 								"job_status": {
-									"value": "'SUCCESS'",
+									"value": "SUCCESS",
 									"type": "String"
 								},
 								"pipeline_run_id": {
@@ -4170,11 +4440,11 @@
 									"type": "String"
 								},
 								"records_read": {
-									"value": "@activity('Copy_SFTP_To_Landing').output.rowsRead",
+									"value": "@activity('Copy_Multiple_Files_To_Landing').output.rowsRead",
 									"type": "Int64"
 								},
 								"records_written": {
-									"value": "@activity('Copy_SFTP_To_Landing').output.rowsCopied",
+									"value": "@activity('Copy_Multiple_Files_To_Landing').output.rowsCopied",
 									"type": "Int64"
 								},
 								"source_file": {
@@ -4182,7 +4452,7 @@
 									"type": "String"
 								},
 								"target_path": {
-									"value": "@pipeline().parameters.p_file_pattern",
+									"value": "@pipeline().parameters.p_target_path",
 									"type": "String"
 								}
 							}
@@ -4193,11 +4463,11 @@
 						}
 					},
 					{
-						"name": "SP_End_Log_Failure_SFTP",
+						"name": "SP_End_Log_Failure_MULTIPLE_FILE",
 						"type": "SqlServerStoredProcedure",
 						"dependsOn": [
 							{
-								"activity": "Copy_SFTP_To_Landing",
+								"activity": "Copy_Multiple_Files_To_Landing",
 								"dependencyConditions": [
 									"Failed"
 								]
@@ -4215,7 +4485,7 @@
 							"storedProcedureName": "[[dbo].[vb_end_log_entry]",
 							"storedProcedureParameters": {
 								"error": {
-									"value": "@activity('Copy_SFTP_To_Landing').error.message",
+									"value": "@pipeline().parameters.p_target_path",
 									"type": "String"
 								},
 								"job_id": {
@@ -4223,7 +4493,7 @@
 									"type": "Int32"
 								},
 								"job_status": {
-									"value": "'FAILED'",
+									"value": "FAILED",
 									"type": "String"
 								},
 								"pipeline_run_id": {
@@ -4280,9 +4550,71 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/DS_SFTP_SOURCE')]",
-				"[concat(variables('factoryId'), '/datasets/DS_ADLS_PARQUET_SINK')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_MULTIPLE_FILE_SOURCE')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_MULTIPLE_FILE_SINK')]",
 				"[concat(variables('factoryId'), '/linkedServices/LS_AZSQL_CONTROL')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_MULTIPLE_FILE_SOURCE')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_ECOMMERCE",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"p_folder_path": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@dataset().p_folder_path",
+							"type": "Expression"
+						},
+						"fileSystem": "source"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_ECOMMERCE')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_MULTIPLE_FILE_SINK')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_ECOMMERCE",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"p_folder_path": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@dataset().p_folder_path",
+							"type": "Expression"
+						},
+						"fileSystem": "landing"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_ECOMMERCE')]"
 			]
 		}
 	]

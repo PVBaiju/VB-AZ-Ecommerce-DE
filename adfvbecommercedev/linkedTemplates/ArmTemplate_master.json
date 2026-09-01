@@ -15,6 +15,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_AZSQL_CONTROL'"
 		},
+		"LS_SFTP_ECOMMERCE_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_SFTP_ECOMMERCE'"
+		},
 		"LS_SNOWFLAKE_ECOMMERCE_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_SNOWFLAKE_ECOMMERCE'"
@@ -22,10 +26,6 @@
 		"LS_SQLSERVER_ECOMMERCE_ONPREM_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_SQLSERVER_ECOMMERCE_ONPREM'"
-		},
-		"LS_SFTP_ECOMMERCE_password": {
-			"type": "secureString",
-			"metadata": "Secure string for 'password' of 'LS_SFTP_ECOMMERCE'"
 		},
 		"Ecommerce_REST_API_properties_typeProperties_url": {
 			"type": "string",
@@ -46,6 +46,18 @@
 		"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "sqladminvb"
+		},
+		"LS_SFTP_ECOMMERCE_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "stvbwecommercesftp.blob.core.windows.net"
+		},
+		"LS_SFTP_ECOMMERCE_properties_typeProperties_hostKeyFingerprint": {
+			"type": "string",
+			"defaultValue": "ecdsa-sha2-nistp256 256 5b:cc:86:7b:0d:ee:c6:4b:92:f5:8e:47:74:a3:0c:ff"
+		},
+		"LS_SFTP_ECOMMERCE_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "stvbwecommercesftp.sftpecommerce"
 		},
 		"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_database": {
 			"type": "string",
@@ -70,18 +82,6 @@
 		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "vb-admin"
-		},
-		"LS_SFTP_ECOMMERCE_properties_typeProperties_host": {
-			"type": "string",
-			"defaultValue": "stvbwecommercesftp.blob.core.windows.net"
-		},
-		"LS_SFTP_ECOMMERCE_properties_typeProperties_hostKeyFingerprint": {
-			"type": "string",
-			"defaultValue": "ecdsa-sha2-nistp256 256 5b:cc:86:7b:0d:ee:c6:4b:92:f5:8e:47:74:a3:0c:ff"
-		},
-		"LS_SFTP_ECOMMERCE_properties_typeProperties_userName": {
-			"type": "string",
-			"defaultValue": "stvbwecommercesftp.sftpecommerce"
 		},
 		"containerUri": {
 			"type": "string",
@@ -116,11 +116,11 @@
 					"LS_AZSQL_CONTROL_password": {
 						"value": "[parameters('LS_AZSQL_CONTROL_password')]"
 					},
-					"LS_SNOWFLAKE_ECOMMERCE_password": {
-						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_password')]"
-					},
 					"LS_SFTP_ECOMMERCE_password": {
 						"value": "[parameters('LS_SFTP_ECOMMERCE_password')]"
+					},
+					"LS_SNOWFLAKE_ECOMMERCE_password": {
+						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_password')]"
 					},
 					"LS_SQLSERVER_ECOMMERCE_ONPREM_password": {
 						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_password')]"
@@ -140,15 +140,6 @@
 					"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
 						"value": "[parameters('LS_AZSQL_CONTROL_properties_typeProperties_userName')]"
 					},
-					"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_database": {
-						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_database')]"
-					},
-					"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_role": {
-						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_role')]"
-					},
-					"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_host": {
-						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_host')]"
-					},
 					"LS_SFTP_ECOMMERCE_properties_typeProperties_host": {
 						"value": "[parameters('LS_SFTP_ECOMMERCE_properties_typeProperties_host')]"
 					},
@@ -157,6 +148,15 @@
 					},
 					"LS_SFTP_ECOMMERCE_properties_typeProperties_userName": {
 						"value": "[parameters('LS_SFTP_ECOMMERCE_properties_typeProperties_userName')]"
+					},
+					"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_database": {
+						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_database')]"
+					},
+					"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_role": {
+						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_role')]"
+					},
+					"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_host": {
+						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_host')]"
 					},
 					"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server": {
 						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server')]"
