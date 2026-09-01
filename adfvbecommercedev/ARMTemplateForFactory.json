@@ -4440,11 +4440,17 @@
 									"type": "String"
 								},
 								"records_read": {
-									"value": "@activity('Copy_Multiple_Files_To_Landing').output.rowsRead",
+									"value": {
+										"value": "@activity('Copy_Multiple_Files_To_Landing').output.filesRead",
+										"type": "Expression"
+									},
 									"type": "Int64"
 								},
 								"records_written": {
-									"value": "@activity('Copy_Multiple_Files_To_Landing').output.rowsCopied",
+									"value": {
+										"value": "@activity('Copy_Multiple_Files_To_Landing').output.filesWritten",
+										"type": "Expression"
+									},
 									"type": "Int64"
 								},
 								"source_file": {
