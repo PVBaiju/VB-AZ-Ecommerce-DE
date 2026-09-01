@@ -396,12 +396,30 @@
 										},
 										"waitOnCompletion": true,
 										"parameters": {
-											"p_job_id": "@pipeline().parameters.p_job_id",
-											"p_pipeline_run_id": "@pipeline().RunId",
-											"p_source_path": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_path",
-											"p_file_pattern": "@activity('Lookup_Get_Job_Metadata').output.firstRow.file_pattern",
-											"p_target_container": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_container",
-											"p_target_path": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_path"
+											"p_job_id": {
+												"value": "@pipeline().parameters.p_job_id",
+												"type": "Expression"
+											},
+											"p_pipeline_run_id": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											},
+											"p_source_path": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_path",
+												"type": "Expression"
+											},
+											"p_file_pattern": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.file_pattern",
+												"type": "Expression"
+											},
+											"p_target_container": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_container",
+												"type": "Expression"
+											},
+											"p_target_path": {
+												"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_path",
+												"type": "Expression"
+											}
 										}
 									}
 								}
@@ -411,12 +429,19 @@
 							"value": "KAFKA",
 							"activities": [
 								{
-									"name": "Wait4",
-									"type": "Wait",
+									"name": "Execute_PL_INGEST_KAFKA",
+									"type": "ExecutePipeline",
 									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
-										"waitTimeInSeconds": 1
+										"pipeline": {
+											"referenceName": "PL_INGEST_KAFKA",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true
 									}
 								}
 							]

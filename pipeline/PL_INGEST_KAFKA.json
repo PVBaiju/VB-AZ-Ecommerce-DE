@@ -1,0 +1,21 @@
+{
+	"name": "PL_INGEST_KAFKA",
+	"properties": {
+		"activities": [
+			{
+				"name": "Run_Kafka_Bronze_Job",
+				"type": "DatabricksJob",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": []
+			}
+		],
+		"annotations": []
+	}
+}
