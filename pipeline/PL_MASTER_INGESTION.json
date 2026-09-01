@@ -382,7 +382,7 @@
 							"value": "MULTIPLE_FILE",
 							"activities": [
 								{
-									"name": "EP_BULK",
+									"name": "EP_MULTIPLE_FILE",
 									"type": "ExecutePipeline",
 									"dependsOn": [],
 									"policy": {

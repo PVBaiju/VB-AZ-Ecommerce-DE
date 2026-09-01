@@ -1,6 +1,206 @@
 {
 	"name": "PL_INGEST_MULTIPLE_FILE",
 	"properties": {
+		"activities": [
+			{
+				"name": "Copy_Multiple_Files_To_Landing",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "@pipeline().parameters.p_source_path",
+							"wildcardFileName": "@pipeline().parameters.p_file_pattern",
+							"deleteFilesAfterCompletion": false
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_ADLS_MULTIPLE_FILE_SOURCE",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_folder_path": "@pipeline().parameters.p_source_path"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_ADLS_MULTIPLE_FILE_SINK",
+						"type": "DatasetReference",
+						"parameters": {
+							"p_folder_path": {
+								"value": "@pipeline().parameters.p_target_path",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "SP_End_Log_Success_MULTIPLE_FILE",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Copy_Multiple_Files_To_Landing",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[vb_end_log_entry]",
+					"storedProcedureParameters": {
+						"error": {
+							"value": null,
+							"type": "String"
+						},
+						"job_id": {
+							"value": "@pipeline().parameters.p_job_id",
+							"type": "Int32"
+						},
+						"job_status": {
+							"value": "SUCCESS",
+							"type": "String"
+						},
+						"pipeline_run_id": {
+							"value": "@pipeline().parameters.p_pipeline_run_id",
+							"type": "String"
+						},
+						"records_read": {
+							"value": "@activity('Copy_Multiple_Files_To_Landing').output.rowsRead",
+							"type": "Int64"
+						},
+						"records_written": {
+							"value": "@activity('Copy_Multiple_Files_To_Landing').output.rowsCopied",
+							"type": "Int64"
+						},
+						"source_file": {
+							"value": "@pipeline().parameters.p_file_pattern",
+							"type": "String"
+						},
+						"target_path": {
+							"value": "@pipeline().parameters.p_target_path",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AZSQL_CONTROL",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "SP_End_Log_Failure_MULTIPLE_FILE",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Copy_Multiple_Files_To_Landing",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[vb_end_log_entry]",
+					"storedProcedureParameters": {
+						"error": {
+							"value": "@pipeline().parameters.p_target_path",
+							"type": "String"
+						},
+						"job_id": {
+							"value": "@pipeline().parameters.p_job_id",
+							"type": "Int32"
+						},
+						"job_status": {
+							"value": "FAILED",
+							"type": "String"
+						},
+						"pipeline_run_id": {
+							"value": "@pipeline().parameters.p_pipeline_run_id",
+							"type": "String"
+						},
+						"records_read": {
+							"value": "0",
+							"type": "Int64"
+						},
+						"records_written": {
+							"value": "0",
+							"type": "Int64"
+						},
+						"source_file": {
+							"value": "@pipeline().parameters.p_file_pattern",
+							"type": "String"
+						},
+						"target_path": {
+							"value": "@pipeline().parameters.p_target_path",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AZSQL_CONTROL",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"p_job_id": {
+				"type": "string"
+			},
+			"p_pipeline_run_id": {
+				"type": "string"
+			},
+			"p_source_path": {
+				"type": "string"
+			},
+			"p_file_pattern": {
+				"type": "string"
+			},
+			"p_target_container": {
+				"type": "string"
+			},
+			"p_target_path": {
+				"type": "string"
+			}
+		},
 		"annotations": []
 	}
 }

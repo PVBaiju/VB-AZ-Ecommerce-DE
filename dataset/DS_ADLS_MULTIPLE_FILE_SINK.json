@@ -1,0 +1,26 @@
+{
+	"name": "DS_ADLS_MULTIPLE_FILE_SINK",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLS_ECOMMERCE",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"p_folder_path": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().p_folder_path",
+					"type": "Expression"
+				},
+				"fileSystem": "landing"
+			}
+		}
+	}
+}
