@@ -394,7 +394,15 @@
 											"referenceName": "PL_INGEST_MULTIPLE_FILE",
 											"type": "PipelineReference"
 										},
-										"waitOnCompletion": true
+										"waitOnCompletion": true,
+										"parameters": {
+											"p_job_id": "@pipeline().parameters.p_job_id",
+											"p_pipeline_run_id": "@pipeline().RunId",
+											"p_source_path": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_path",
+											"p_file_pattern": "@activity('Lookup_Get_Job_Metadata').output.firstRow.file_pattern",
+											"p_target_container": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_container",
+											"p_target_path": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_path"
+										}
 									}
 								}
 							]
