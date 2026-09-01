@@ -306,7 +306,8 @@
 											"p_schema": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_schema",
 											"p_table": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_table",
 											"p_target_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
-											"p_target_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path"
+											"p_target_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+											"p_watermark_column": "@activity('Lookup_Get_Job_Metadata').output.value[0].watermark_column"
 										}
 									}
 								}
