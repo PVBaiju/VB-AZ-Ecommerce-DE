@@ -7,9 +7,17 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adfvbecommercedev"
 		},
+		"LS_ADLS_SNOWFLAKE_STAGE_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_ADLS_SNOWFLAKE_STAGE'"
+		},
 		"LS_AZSQL_CONTROL_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_AZSQL_CONTROL'"
+		},
+		"LS_SNOWFLAKE_ECOMMERCE_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_SNOWFLAKE_ECOMMERCE'"
 		},
 		"LS_SQLSERVER_ECOMMERCE_ONPREM_password": {
 			"type": "secureString",
@@ -34,6 +42,18 @@
 		"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "sqladminvb"
+		},
+		"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "VB_ECOMMERCE_SF"
+		},
+		"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_role": {
+			"type": "string",
+			"defaultValue": "ACCOUNTADMIN"
+		},
+		"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "PYKNTMV-GO87004.snowflakecomputing.com"
 		},
 		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server": {
 			"type": "string",
@@ -74,8 +94,14 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"LS_ADLS_SNOWFLAKE_STAGE_connectionString": {
+						"value": "[parameters('LS_ADLS_SNOWFLAKE_STAGE_connectionString')]"
+					},
 					"LS_AZSQL_CONTROL_password": {
 						"value": "[parameters('LS_AZSQL_CONTROL_password')]"
+					},
+					"LS_SNOWFLAKE_ECOMMERCE_password": {
+						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_password')]"
 					},
 					"LS_SQLSERVER_ECOMMERCE_ONPREM_password": {
 						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_password')]"
@@ -95,6 +121,15 @@
 					"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
 						"value": "[parameters('LS_AZSQL_CONTROL_properties_typeProperties_userName')]"
 					},
+					"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_database": {
+						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_database')]"
+					},
+					"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_role": {
+						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_role')]"
+					},
+					"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_host": {
+						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_host')]"
+					},
 					"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server": {
 						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server')]"
 					},
@@ -107,6 +142,26 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "adfvbecommercedev_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adfvbecommercedev_ArmTemplate_0')]"
+			]
 		}
 	]
 }

@@ -5,7 +5,13 @@
 		"factoryName": {
 			"value": "adfvbecommercedev"
 		},
+		"LS_ADLS_SNOWFLAKE_STAGE_connectionString": {
+			"value": ""
+		},
 		"LS_AZSQL_CONTROL_password": {
+			"value": ""
+		},
+		"LS_SNOWFLAKE_ECOMMERCE_password": {
 			"value": ""
 		},
 		"LS_SQLSERVER_ECOMMERCE_ONPREM_password": {
@@ -25,6 +31,15 @@
 		},
 		"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
 			"value": "sqladminvb"
+		},
+		"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_database": {
+			"value": "VB_ECOMMERCE_SF"
+		},
+		"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_role": {
+			"value": "ACCOUNTADMIN"
+		},
+		"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_host": {
+			"value": "PYKNTMV-GO87004.snowflakecomputing.com"
 		},
 		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server": {
 			"value": "."

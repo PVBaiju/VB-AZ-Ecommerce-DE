@@ -7,9 +7,17 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adfvbecommercedev"
 		},
+		"LS_ADLS_SNOWFLAKE_STAGE_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_ADLS_SNOWFLAKE_STAGE'"
+		},
 		"LS_AZSQL_CONTROL_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_AZSQL_CONTROL'"
+		},
+		"LS_SNOWFLAKE_ECOMMERCE_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_SNOWFLAKE_ECOMMERCE'"
 		},
 		"LS_SQLSERVER_ECOMMERCE_ONPREM_password": {
 			"type": "secureString",
@@ -34,6 +42,18 @@
 		"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "sqladminvb"
+		},
+		"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "VB_ECOMMERCE_SF"
+		},
+		"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_role": {
+			"type": "string",
+			"defaultValue": "ACCOUNTADMIN"
+		},
+		"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "PYKNTMV-GO87004.snowflakecomputing.com"
 		},
 		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server": {
 			"type": "string",
@@ -1586,6 +1606,322 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/PL_INGEST_SNOWFLAKE')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy_Snowflake_Orders",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Lookup_Snowflake_Watermark",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "SnowflakeV2Source",
+								"query": {
+									"value": "@concat(\n    'SELECT * FROM ',\n    pipeline().parameters.p_schema,\n    '.',\n    pipeline().parameters.p_table,\n    ' WHERE ',\n    pipeline().parameters.p_watermark_column,\n    ' > ''',\n    activity('Lookup_Snowflake_Watermark').output.value[0].last_watermark_value,\n    ''''\n)",
+									"type": "Expression"
+								},
+								"exportSettings": {
+									"type": "SnowflakeExportCopyCommand",
+									"storageIntegration": "SNOWFLAKE_AZURE_INTEGRATION"
+								}
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings",
+									"copyBehavior": "MergeFiles"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": true,
+							"stagingSettings": {
+								"linkedServiceName": {
+									"referenceName": "LS_ADLS_SNOWFLAKE_STAGE",
+									"type": "LinkedServiceReference"
+								},
+								"path": "snowflake-stage/orders"
+							},
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_SNOWFLAKE_ORDERS",
+								"type": "DatasetReference",
+								"parameters": {
+									"p_schema": {
+										"value": "@pipeline().parameters.p_schema",
+										"type": "Expression"
+									},
+									"p_table": {
+										"value": "@pipeline().parameters.p_table",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_ADLS_PARQUET_SINK",
+								"type": "DatasetReference",
+								"parameters": {
+									"p_container": {
+										"value": "@pipeline().parameters.p_target_container",
+										"type": "Expression"
+									},
+									"p_folder_path": {
+										"value": "@concat(\n    pipeline().parameters.p_target_path,\n    '/',\n    formatDateTime(utcnow(),'yyyy/MM/dd')\n)",
+										"type": "Expression"
+									},
+									"p_file_name": "@concat(     pipeline().parameters.p_table,     '_',     formatDateTime(utcnow(),'ddMMyyyy'),     '.parquet' )"
+								}
+							}
+						]
+					},
+					{
+						"name": "SP_End_Log_Success_SNOWFLAKE",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy_Snowflake_Orders",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[vb_end_log_entry]",
+							"storedProcedureParameters": {
+								"error": {
+									"value": "'NULL'",
+									"type": "String"
+								},
+								"job_id": {
+									"value": {
+										"value": "@pipeline().parameters.p_job_id",
+										"type": "Expression"
+									},
+									"type": "Int32"
+								},
+								"job_status": {
+									"value": "'SUCCESS'",
+									"type": "String"
+								},
+								"pipeline_run_id": {
+									"value": {
+										"value": "@pipeline().parameters.p_pipeline_run_id",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"records_read": {
+									"value": {
+										"value": "@activity('Copy_Snowflake_Orders').output.rowsRead",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"records_written": {
+									"value": {
+										"value": "@activity('Copy_Snowflake_Orders').output.rowsCopied",
+										"type": "Expression"
+									},
+									"type": "Int64"
+								},
+								"source_file": {
+									"value": {
+										"value": "@concat(\n    pipeline().parameters.p_schema,\n    '.',\n    pipeline().parameters.p_table\n)",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"target_path": {
+									"value": {
+										"value": "@pipeline().parameters.p_target_path",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_AZSQL_CONTROL",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "SP_End_Log_Failure_SNOWFLAKE",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Copy_Snowflake_Orders",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[vb_end_log_entry]",
+							"storedProcedureParameters": {
+								"error": {
+									"value": {
+										"value": "@activity('Copy_Snowflake_Orders').error.message",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"job_id": {
+									"value": {
+										"value": "@pipeline().parameters.p_job_id",
+										"type": "Expression"
+									},
+									"type": "Int32"
+								},
+								"job_status": {
+									"value": "'FAILED'",
+									"type": "String"
+								},
+								"pipeline_run_id": {
+									"value": {
+										"value": "@pipeline().parameters.p_pipeline_run_id",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"records_read": {
+									"value": "'NULL'",
+									"type": "Int64"
+								},
+								"records_written": {
+									"value": "'NULL'",
+									"type": "Int64"
+								},
+								"source_file": {
+									"value": {
+										"value": "@concat(\n    pipeline().parameters.p_schema,\n    '.',\n    pipeline().parameters.p_table\n)",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"target_path": {
+									"value": {
+										"value": "@pipeline().parameters.p_target_path",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_AZSQL_CONTROL",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Lookup_Snowflake_Watermark",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "@concat(\n    'SELECT last_watermark_value\n     FROM dbo.vb_tbl_watermark\n     WHERE job_id = ',\n    string(pipeline().parameters.p_job_id)\n)",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "DS_SQL_CONTROL",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"p_job_id": {
+						"type": "int"
+					},
+					"p_pipeline_run_id": {
+						"type": "string"
+					},
+					"p_schema": {
+						"type": "string"
+					},
+					"p_table": {
+						"type": "string"
+					},
+					"p_target_container": {
+						"type": "string"
+					},
+					"p_target_path": {
+						"type": "string"
+					},
+					"p_watermark_column": {
+						"type": "string"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_SNOWFLAKE_ORDERS')]",
+				"[concat(variables('factoryId'), '/datasets/DS_ADLS_PARQUET_SINK')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_AZSQL_CONTROL')]",
+				"[concat(variables('factoryId'), '/datasets/DS_SQL_CONTROL')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_SNOWFLAKE_STAGE')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/PL_INGEST_SQL')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -2448,12 +2784,31 @@
 									"value": "SNOWFLAKE",
 									"activities": [
 										{
-											"name": "Wait1",
-											"type": "Wait",
+											"name": "EP_SNOWFLAKE",
+											"type": "ExecutePipeline",
 											"dependsOn": [],
+											"policy": {
+												"secureInput": false
+											},
 											"userProperties": [],
 											"typeProperties": {
-												"waitTimeInSeconds": 1
+												"pipeline": {
+													"referenceName": "PL_INGEST_SNOWFLAKE",
+													"type": "PipelineReference"
+												},
+												"waitOnCompletion": true,
+												"parameters": {
+													"p_job_id": {
+														"value": "@pipeline().parameters.p_job_id",
+														"type": "Expression"
+													},
+													"p_pipeline_run_id": "@pipeline().RunId",
+													"p_schema": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_schema",
+													"p_table": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_table",
+													"p_target_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+													"p_target_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+													"p_watermark_column": "@activity('Lookup_Get_Job_Metadata').output.value[0].watermark_column"
+												}
 											}
 										}
 									]
@@ -2572,7 +2927,8 @@
 				"[concat(variables('factoryId'), '/pipelines/PL_INGEST_EXCEL')]",
 				"[concat(variables('factoryId'), '/pipelines/PL_INGEST_JSON')]",
 				"[concat(variables('factoryId'), '/pipelines/PL_INGEST_REST_API')]",
-				"[concat(variables('factoryId'), '/pipelines/PL_INGEST_SQL')]"
+				"[concat(variables('factoryId'), '/pipelines/PL_INGEST_SQL')]",
+				"[concat(variables('factoryId'), '/pipelines/PL_INGEST_SNOWFLAKE')]"
 			]
 		},
 		{
@@ -2826,6 +3182,90 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DS_SNOWFLAKE_ORDERS')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SNOWFLAKE_ECOMMERCE",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"p_schema": {
+						"type": "string"
+					},
+					"p_table": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "SnowflakeV2Table",
+				"schema": [
+					{
+						"name": "ORDER_ID",
+						"type": "NUMBER",
+						"precision": 38,
+						"scale": 0
+					},
+					{
+						"name": "CUSTOMER_ID",
+						"type": "NUMBER",
+						"precision": 38,
+						"scale": 0
+					},
+					{
+						"name": "ORDER_DATE",
+						"type": "DATE",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "PRODUCT_ID",
+						"type": "NUMBER",
+						"precision": 38,
+						"scale": 0
+					},
+					{
+						"name": "QUANTITY",
+						"type": "NUMBER",
+						"precision": 38,
+						"scale": 0
+					},
+					{
+						"name": "ORDER_AMOUNT",
+						"type": "NUMBER",
+						"precision": 12,
+						"scale": 2
+					},
+					{
+						"name": "ORDER_STATUS",
+						"type": "VARCHAR",
+						"precision": 0,
+						"scale": 0
+					},
+					{
+						"name": "MODIFIED_DATE",
+						"type": "TIMESTAMP_NTZ",
+						"precision": 0,
+						"scale": 9
+					}
+				],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().p_schema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().p_table",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SNOWFLAKE_ECOMMERCE')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_SQLSERVER_SOURCE')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -2855,6 +3295,24 @@
 						"type": "Expression"
 					}
 				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_SQLSERVER_ECOMMERCE_ONPREM')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_SQLSERVER_TABLE_LIST')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_SQLSERVER_ECOMMERCE_ONPREM",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {}
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS_SQLSERVER_ECOMMERCE_ONPREM')]"
@@ -2907,6 +3365,19 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/LS_ADLS_SNOWFLAKE_STAGE')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('LS_ADLS_SNOWFLAKE_STAGE_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LS_AZSQL_CONTROL')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -2925,6 +3396,31 @@
 						"value": "[parameters('LS_AZSQL_CONTROL_password')]"
 					}
 				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_SNOWFLAKE_ECOMMERCE')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "SnowflakeV2",
+				"typeProperties": {
+					"authenticationType": "Basic",
+					"accountIdentifier": "PYKNTMV-GO87004",
+					"user": "baijupv",
+					"database": "[parameters('LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_database')]",
+					"warehouse": "VB_ECOMMERCE_WH",
+					"role": "[parameters('LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_role')]",
+					"host": "[parameters('LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_host')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_password')]"
+					},
+					"useUtcTimestamps": false
+				},
+				"version": "1.1"
 			},
 			"dependsOn": []
 		},
@@ -2966,24 +3462,6 @@
 				"typeProperties": {}
 			},
 			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DS_SQLSERVER_TABLE_LIST')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_SQLSERVER_ECOMMERCE_ONPREM",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "SqlServerTable",
-				"schema": [],
-				"typeProperties": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_SQLSERVER_ECOMMERCE_ONPREM')]"
-			]
 		}
 	]
 }
