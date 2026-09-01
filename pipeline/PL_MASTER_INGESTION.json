@@ -349,8 +349,14 @@
 										},
 										"waitOnCompletion": true,
 										"parameters": {
-											"p_job_id": "@pipeline().parameters.p_job_id",
-											"p_pipeline_run_id": "@pipeline().RunId",
+											"p_job_id": {
+												"value": "@pipeline().parameters.p_job_id",
+												"type": "Expression"
+											},
+											"p_pipeline_run_id": {
+												"value": "@pipeline().RunId",
+												"type": "Expression"
+											},
 											"p_source_path": {
 												"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_path",
 												"type": "Expression"
@@ -376,12 +382,19 @@
 							"value": "MULTIPLE_FILE",
 							"activities": [
 								{
-									"name": "Wait3",
-									"type": "Wait",
+									"name": "EP_BULK",
+									"type": "ExecutePipeline",
 									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
-										"waitTimeInSeconds": 1
+										"pipeline": {
+											"referenceName": "PL_INGEST_MULTIPLE_FILE",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true
 									}
 								}
 							]
