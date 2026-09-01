@@ -2227,7 +2227,7 @@
 									"type": "SqlServerStoredProcedure",
 									"dependsOn": [
 										{
-											"activity": "Copy_Snowflake_Incremental",
+											"activity": "SP_Update_Watermark_SNOWFLAKE_false",
 											"dependencyConditions": [
 												"Succeeded"
 											]
@@ -2376,6 +2376,107 @@
 										"referenceName": "LS_AZSQL_CONTROL",
 										"type": "LinkedServiceReference"
 									}
+								},
+								{
+									"name": "SP_Update_Watermark_SNOWFLAKE_false",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Lookup_Snowflake_Max_Watermark_false",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[vb_update_watermark]",
+										"storedProcedureParameters": {
+											"job_id": {
+												"value": {
+													"value": "@pipeline().parameters.p_job_id",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"last_watermark_value": {
+												"value": {
+													"value": "@string(activity('Lookup_Snowflake_Max_Watermark_false').output.firstRow.LAST_WATERMARK_VALUE)",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"source_schema": {
+												"value": {
+													"value": "@pipeline().parameters.p_schema",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"source_table": {
+												"value": {
+													"value": "@pipeline().parameters.p_table",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AZSQL_CONTROL",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Lookup_Snowflake_Max_Watermark_false",
+									"type": "Lookup",
+									"dependsOn": [
+										{
+											"activity": "Copy_Snowflake_Incremental",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SnowflakeV2Source",
+											"query": "@concat(\n    'SELECT MAX(',\n    pipeline().parameters.p_watermark_column,\n    ') AS LAST_WATERMARK_VALUE FROM ',\n    pipeline().parameters.p_schema,\n    '.',\n    pipeline().parameters.p_table\n)",
+											"exportSettings": {
+												"type": "SnowflakeExportCopyCommand"
+											},
+											"treatDecimalAsString": false
+										},
+										"dataset": {
+											"referenceName": "DS_SNOWFLAKE_ORDERS",
+											"type": "DatasetReference",
+											"parameters": {
+												"p_schema": {
+													"value": "@pipeline().parameters.p_schema",
+													"type": "Expression"
+												},
+												"p_table": {
+													"value": "@pipeline().parameters.p_table",
+													"type": "Expression"
+												}
+											}
+										}
+									}
 								}
 							],
 							"ifTrueActivities": [
@@ -2469,7 +2570,7 @@
 									"type": "SqlServerStoredProcedure",
 									"dependsOn": [
 										{
-											"activity": "Copy_Snowflake_Full",
+											"activity": "SP_Update_Watermark_SNOWFLAKE",
 											"dependencyConditions": [
 												"Succeeded"
 											]
@@ -2617,6 +2718,107 @@
 									"linkedServiceName": {
 										"referenceName": "LS_AZSQL_CONTROL",
 										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "SP_Update_Watermark_SNOWFLAKE",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Lookup_Snowflake_Max_Watermark",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[vb_update_watermark]",
+										"storedProcedureParameters": {
+											"job_id": {
+												"value": {
+													"value": "@pipeline().parameters.p_job_id",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"last_watermark_value": {
+												"value": {
+													"value": "@string(activity('Lookup_Snowflake_Max_Watermark').output.firstRow.LAST_WATERMARK_VALUE)",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"source_schema": {
+												"value": {
+													"value": "@pipeline().parameters.p_schema",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"source_table": {
+												"value": {
+													"value": "@pipeline().parameters.p_table",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "LS_AZSQL_CONTROL",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Lookup_Snowflake_Max_Watermark",
+									"type": "Lookup",
+									"dependsOn": [
+										{
+											"activity": "Copy_Snowflake_Full",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "SnowflakeV2Source",
+											"query": "@concat(\n    'SELECT MAX(',\n    pipeline().parameters.p_watermark_column,\n    ') AS LAST_WATERMARK_VALUE FROM ',\n    pipeline().parameters.p_schema,\n    '.',\n    pipeline().parameters.p_table\n)",
+											"exportSettings": {
+												"type": "SnowflakeExportCopyCommand"
+											},
+											"treatDecimalAsString": false
+										},
+										"dataset": {
+											"referenceName": "DS_SNOWFLAKE_ORDERS",
+											"type": "DatasetReference",
+											"parameters": {
+												"p_schema": {
+													"value": "@pipeline().parameters.p_schema",
+													"type": "Expression"
+												},
+												"p_table": {
+													"value": "@pipeline().parameters.p_table",
+													"type": "Expression"
+												}
+											}
+										}
 									}
 								}
 							]
