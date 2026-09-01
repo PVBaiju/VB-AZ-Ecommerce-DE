@@ -221,11 +221,11 @@
 							"type": "String"
 						},
 						"records_read": {
-							"value": "'NULL'",
+							"value": null,
 							"type": "Int64"
 						},
 						"records_written": {
-							"value": "'NULL'",
+							"value": null,
 							"type": "Int64"
 						},
 						"source_file": {
