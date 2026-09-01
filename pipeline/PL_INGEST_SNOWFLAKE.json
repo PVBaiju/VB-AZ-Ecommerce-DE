@@ -25,7 +25,7 @@
 					"source": {
 						"type": "SnowflakeV2Source",
 						"query": {
-							"value": "@concat(\n    'SELECT * FROM ',\n    pipeline().parameters.p_schema,\n    '.',\n    pipeline().parameters.p_table,\n    ' WHERE ',\n    pipeline().parameters.p_watermark_column,\n    ' > ''',\n    activity('Lookup_Snowflake_Watermark').output.value[0].last_watermark_value,\n    ''''\n)",
+							"value": "@concat(\n    'SELECT * FROM ',\n    pipeline().parameters.p_schema,\n    '.',\n    pipeline().parameters.p_table,\n    ' WHERE ',\n    pipeline().parameters.p_watermark_column,\n    ' > ''',\n    activity('Lookup_Snowflake_Watermark').output.firstRow.last_watermark_value,\n    ''''\n)",
 							"type": "Expression"
 						},
 						"exportSettings": {
