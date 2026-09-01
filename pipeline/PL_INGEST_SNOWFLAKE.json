@@ -31,7 +31,7 @@
 				}
 			},
 			{
-				"name": "If Condition1",
+				"name": "IF_Watermark_Exists",
 				"type": "IfCondition",
 				"dependsOn": [
 					{
