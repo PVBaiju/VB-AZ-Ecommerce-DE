@@ -71,6 +71,128 @@
 						}
 					}
 				]
+			},
+			{
+				"name": "SP_End_Log_Success_SFTP",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Copy_SFTP_To_Landing",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[vb_end_log_entry]",
+					"storedProcedureParameters": {
+						"error": {
+							"value": "'NULL'",
+							"type": "String"
+						},
+						"job_id": {
+							"value": "@pipeline().parameters.p_job_id",
+							"type": "Int32"
+						},
+						"job_status": {
+							"value": "'SUCCESS'",
+							"type": "String"
+						},
+						"pipeline_run_id": {
+							"value": "@pipeline().parameters.p_pipeline_run_id",
+							"type": "String"
+						},
+						"records_read": {
+							"value": "@activity('Copy_SFTP_To_Landing').output.rowsRead",
+							"type": "Int64"
+						},
+						"records_written": {
+							"value": "@activity('Copy_SFTP_To_Landing').output.rowsCopied",
+							"type": "Int64"
+						},
+						"source_file": {
+							"value": "@pipeline().parameters.p_file_pattern",
+							"type": "String"
+						},
+						"target_path": {
+							"value": "@pipeline().parameters.p_file_pattern",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AZSQL_CONTROL",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "SP_End_Log_Failure_SFTP",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Copy_SFTP_To_Landing",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[vb_end_log_entry]",
+					"storedProcedureParameters": {
+						"error": {
+							"value": "@activity('Copy_SFTP_To_Landing').error.message",
+							"type": "String"
+						},
+						"job_id": {
+							"value": "@pipeline().parameters.p_job_id",
+							"type": "Int32"
+						},
+						"job_status": {
+							"value": "'FAILED'",
+							"type": "String"
+						},
+						"pipeline_run_id": {
+							"value": "@pipeline().parameters.p_pipeline_run_id",
+							"type": "String"
+						},
+						"records_read": {
+							"value": "0",
+							"type": "Int64"
+						},
+						"records_written": {
+							"value": "0",
+							"type": "Int64"
+						},
+						"source_file": {
+							"value": "@pipeline().parameters.p_file_pattern",
+							"type": "String"
+						},
+						"target_path": {
+							"value": "@pipeline().parameters.p_target_path",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AZSQL_CONTROL",
+					"type": "LinkedServiceReference"
+				}
 			}
 		],
 		"parameters": {
