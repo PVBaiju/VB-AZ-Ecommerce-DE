@@ -128,7 +128,10 @@
 											"value": "@concat(\n    pipeline().parameters.p_target_path,\n    '/',\n    formatDateTime(utcnow(),'yyyy/MM/dd')\n)",
 											"type": "Expression"
 										},
-										"p_file_name": "@concat(     pipeline().parameters.p_table,     '_',     formatDateTime(utcnow(),'ddMMyyyy'),     '.parquet' )"
+										"p_file_name": {
+											"value": "@concat(\n    pipeline().parameters.p_table,\n    '_',\n    formatDateTime(utcnow(),'yyyyMMdd_HHmmss'),\n    '_',\n    substring(pipeline().RunId,0,8),\n    '.parquet'\n)",
+											"type": "Expression"
+										}
 									}
 								}
 							]
@@ -471,7 +474,10 @@
 											"value": "@concat(\n    pipeline().parameters.p_target_path,\n    '/',\n    formatDateTime(utcnow(),'yyyy/MM/dd')\n)",
 											"type": "Expression"
 										},
-										"p_file_name": "@concat(     pipeline().parameters.p_table,     '_',     formatDateTime(utcnow(),'ddMMyyyy'),     '.parquet' )"
+										"p_file_name": {
+											"value": "@concat(\n    pipeline().parameters.p_table,\n    '_',\n    formatDateTime(utcnow(),'yyyyMMdd_HHmmss'),\n    '_',\n    substring(pipeline().RunId,0,8),\n    '.parquet'\n)",
+											"type": "Expression"
+										}
 									}
 								}
 							]
