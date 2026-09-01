@@ -110,7 +110,10 @@
 							"type": "String"
 						},
 						"job_id": {
-							"value": "@pipeline().parameters.p_job_id",
+							"value": {
+								"value": "@pipeline().parameters.p_job_id",
+								"type": "Expression"
+							},
 							"type": "Int32"
 						},
 						"job_status": {
@@ -118,23 +121,38 @@
 							"type": "String"
 						},
 						"pipeline_run_id": {
-							"value": "@pipeline().parameters.p_pipeline_run_id",
+							"value": {
+								"value": "@pipeline().parameters.p_pipeline_run_id",
+								"type": "Expression"
+							},
 							"type": "String"
 						},
 						"records_read": {
-							"value": "@activity('Copy_Snowflake_Orders').output.rowsRead",
+							"value": {
+								"value": "@activity('Copy_Snowflake_Orders').output.rowsRead",
+								"type": "Expression"
+							},
 							"type": "Int64"
 						},
 						"records_written": {
-							"value": "@activity('Copy_Snowflake_Orders').output.rowsCopied",
+							"value": {
+								"value": "@activity('Copy_Snowflake_Orders').output.rowsCopied",
+								"type": "Expression"
+							},
 							"type": "Int64"
 						},
 						"source_file": {
-							"value": "@concat(\n    pipeline().parameters.p_schema,\n    '.',\n    pipeline().parameters.p_table\n)",
+							"value": {
+								"value": "@concat(\n    pipeline().parameters.p_schema,\n    '.',\n    pipeline().parameters.p_table\n)",
+								"type": "Expression"
+							},
 							"type": "String"
 						},
 						"target_path": {
-							"value": "@pipeline().parameters.p_target_path",
+							"value": {
+								"value": "@pipeline().parameters.p_target_path",
+								"type": "Expression"
+							},
 							"type": "String"
 						}
 					}
@@ -167,11 +185,17 @@
 					"storedProcedureName": "[dbo].[vb_end_log_entry]",
 					"storedProcedureParameters": {
 						"error": {
-							"value": "@activity('Copy_Snowflake_Orders').error.message",
+							"value": {
+								"value": "@activity('Copy_Snowflake_Orders').error.message",
+								"type": "Expression"
+							},
 							"type": "String"
 						},
 						"job_id": {
-							"value": "@pipeline().parameters.p_job_id",
+							"value": {
+								"value": "@pipeline().parameters.p_job_id",
+								"type": "Expression"
+							},
 							"type": "Int32"
 						},
 						"job_status": {
@@ -179,7 +203,10 @@
 							"type": "String"
 						},
 						"pipeline_run_id": {
-							"value": "@pipeline().parameters.p_pipeline_run_id",
+							"value": {
+								"value": "@pipeline().parameters.p_pipeline_run_id",
+								"type": "Expression"
+							},
 							"type": "String"
 						},
 						"records_read": {
@@ -191,11 +218,17 @@
 							"type": "Int64"
 						},
 						"source_file": {
-							"value": "@concat(\n    pipeline().parameters.p_schema,\n    '.',\n    pipeline().parameters.p_table\n)",
+							"value": {
+								"value": "@concat(\n    pipeline().parameters.p_schema,\n    '.',\n    pipeline().parameters.p_table\n)",
+								"type": "Expression"
+							},
 							"type": "String"
 						},
 						"target_path": {
-							"value": "@pipeline().parameters.p_target_path",
+							"value": {
+								"value": "@pipeline().parameters.p_target_path",
+								"type": "Expression"
+							},
 							"type": "String"
 						}
 					}
@@ -203,6 +236,31 @@
 				"linkedServiceName": {
 					"referenceName": "LS_AZSQL_CONTROL",
 					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Lookup_Snowflake_Watermark",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "@concat(\n    'SELECT last_watermark_value\n     FROM dbo.vb_tbl_watermark\n     WHERE job_id = ',\n    string(pipeline().parameters.p_job_id)\n)",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_SQL_CONTROL",
+						"type": "DatasetReference"
+					}
 				}
 			}
 		],

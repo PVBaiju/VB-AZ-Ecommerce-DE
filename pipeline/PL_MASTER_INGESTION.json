@@ -284,12 +284,19 @@
 							"value": "SNOWFLAKE",
 							"activities": [
 								{
-									"name": "Wait1",
-									"type": "Wait",
+									"name": "EP_SNOWFLAKE",
+									"type": "ExecutePipeline",
 									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
-										"waitTimeInSeconds": 1
+										"pipeline": {
+											"referenceName": "PL_INGEST_SNOWFLAKE",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true
 									}
 								}
 							]
