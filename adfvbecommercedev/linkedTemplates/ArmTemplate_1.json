@@ -2212,7 +2212,7 @@
 							"storedProcedureName": "[[dbo].[vb_end_log_entry]",
 							"storedProcedureParameters": {
 								"error": {
-									"value": "@pipeline().parameters.p_target_path",
+									"value": "@activity('Copy_Multiple_Files_To_Landing').error.message",
 									"type": "String"
 								},
 								"job_id": {
