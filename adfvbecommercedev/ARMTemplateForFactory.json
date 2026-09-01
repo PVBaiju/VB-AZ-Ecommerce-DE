@@ -3340,10 +3340,22 @@
 												"parameters": {
 													"p_job_id": "@pipeline().parameters.p_job_id",
 													"p_pipeline_run_id": "@pipeline().RunId",
-													"p_source_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
-													"p_file_pattern": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
-													"p_target_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
-													"p_target_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path"
+													"p_source_path": {
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_path",
+														"type": "Expression"
+													},
+													"p_file_pattern": {
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.file_pattern",
+														"type": "Expression"
+													},
+													"p_target_container": {
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_container",
+														"type": "Expression"
+													},
+													"p_target_path": {
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_path",
+														"type": "Expression"
+													}
 												}
 											}
 										}
