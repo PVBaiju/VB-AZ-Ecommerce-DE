@@ -296,7 +296,18 @@
 											"referenceName": "PL_INGEST_SNOWFLAKE",
 											"type": "PipelineReference"
 										},
-										"waitOnCompletion": true
+										"waitOnCompletion": true,
+										"parameters": {
+											"p_job_id": {
+												"value": "@pipeline().parameters.p_job_id",
+												"type": "Expression"
+											},
+											"p_pipeline_run_id": "@pipeline().RunId",
+											"p_schema": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_schema",
+											"p_table": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_table",
+											"p_target_container": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+											"p_target_path": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path"
+										}
 									}
 								}
 							]
