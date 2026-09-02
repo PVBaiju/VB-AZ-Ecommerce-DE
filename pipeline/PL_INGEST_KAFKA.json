@@ -13,7 +13,14 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": []
+				"userProperties": [],
+				"typeProperties": {
+					"jobId": "707073320821086"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AZURE_DATABRICKS",
+					"type": "LinkedServiceReference"
+				}
 			}
 		],
 		"annotations": []
