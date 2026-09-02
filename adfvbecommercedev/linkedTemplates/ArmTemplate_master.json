@@ -15,6 +15,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_AZSQL_CONTROL'"
 		},
+		"LS_AZURE_DATABRICKS_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'LS_AZURE_DATABRICKS'"
+		},
 		"LS_SFTP_ECOMMERCE_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_SFTP_ECOMMERCE'"
@@ -46,6 +50,10 @@
 		"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "sqladminvb"
+		},
+		"LS_AZURE_DATABRICKS_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0830-113514-b3wi3e6z"
 		},
 		"LS_SFTP_ECOMMERCE_properties_typeProperties_host": {
 			"type": "string",
@@ -116,6 +124,9 @@
 					"LS_AZSQL_CONTROL_password": {
 						"value": "[parameters('LS_AZSQL_CONTROL_password')]"
 					},
+					"LS_AZURE_DATABRICKS_accessToken": {
+						"value": "[parameters('LS_AZURE_DATABRICKS_accessToken')]"
+					},
 					"LS_SFTP_ECOMMERCE_password": {
 						"value": "[parameters('LS_SFTP_ECOMMERCE_password')]"
 					},
@@ -139,6 +150,9 @@
 					},
 					"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
 						"value": "[parameters('LS_AZSQL_CONTROL_properties_typeProperties_userName')]"
+					},
+					"LS_AZURE_DATABRICKS_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('LS_AZURE_DATABRICKS_properties_typeProperties_existingClusterId')]"
 					},
 					"LS_SFTP_ECOMMERCE_properties_typeProperties_host": {
 						"value": "[parameters('LS_SFTP_ECOMMERCE_properties_typeProperties_host')]"

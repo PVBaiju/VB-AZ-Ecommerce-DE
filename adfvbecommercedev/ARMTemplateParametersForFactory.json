@@ -11,6 +11,9 @@
 		"LS_AZSQL_CONTROL_password": {
 			"value": ""
 		},
+		"LS_AZURE_DATABRICKS_accessToken": {
+			"value": ""
+		},
 		"LS_SFTP_ECOMMERCE_password": {
 			"value": ""
 		},
@@ -34,6 +37,9 @@
 		},
 		"LS_AZSQL_CONTROL_properties_typeProperties_userName": {
 			"value": "sqladminvb"
+		},
+		"LS_AZURE_DATABRICKS_properties_typeProperties_existingClusterId": {
+			"value": "0830-113514-b3wi3e6z"
 		},
 		"LS_SFTP_ECOMMERCE_properties_typeProperties_host": {
 			"value": "stvbwecommercesftp.blob.core.windows.net"
