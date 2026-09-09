@@ -230,6 +230,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"type": "SelfHosted",
+				"description": "On-premises SQL Server connectivity",
 				"typeProperties": {}
 			},
 			"dependsOn": []
