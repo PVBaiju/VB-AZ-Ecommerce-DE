@@ -3506,7 +3506,7 @@
 									"value": "CSV",
 									"activities": [
 										{
-											"name": "EP_CSV",
+											"name": "EP_CSV_10",
 											"type": "ExecutePipeline",
 											"dependsOn": [],
 											"policy": {
@@ -3557,7 +3557,7 @@
 									"value": "EXCEL",
 									"activities": [
 										{
-											"name": "EP_EXCEL",
+											"name": "EP_EXCEL_11",
 											"type": "ExecutePipeline",
 											"dependsOn": [],
 											"policy": {
@@ -3612,7 +3612,7 @@
 									"value": "JSON",
 									"activities": [
 										{
-											"name": "EP_JSON",
+											"name": "EP_JSON_12",
 											"type": "ExecutePipeline",
 											"dependsOn": [],
 											"policy": {
@@ -3663,7 +3663,7 @@
 									"value": "REST_API",
 									"activities": [
 										{
-											"name": "EP_REST_API",
+											"name": "EP_REST_API_13",
 											"type": "ExecutePipeline",
 											"dependsOn": [],
 											"policy": {
@@ -3706,7 +3706,7 @@
 									"value": "SQL_SERVER",
 									"activities": [
 										{
-											"name": "EP_SQL",
+											"name": "EP_SQL_14",
 											"type": "ExecutePipeline",
 											"dependsOn": [],
 											"policy": {
@@ -3737,7 +3737,7 @@
 									"value": "SNOWFLAKE",
 									"activities": [
 										{
-											"name": "EP_SNOWFLAKE",
+											"name": "EP_SNOWFLAKE_15",
 											"type": "ExecutePipeline",
 											"dependsOn": [],
 											"policy": {
@@ -3788,7 +3788,7 @@
 									"value": "SFTP",
 									"activities": [
 										{
-											"name": "EP_SFTP",
+											"name": "EP_SFTP_16",
 											"type": "ExecutePipeline",
 											"dependsOn": [],
 											"policy": {
@@ -3835,7 +3835,7 @@
 									"value": "MULTIPLE_FILE",
 									"activities": [
 										{
-											"name": "EP_MULTIPLE_FILE",
+											"name": "EP_MULTIPLE_FILE_17",
 											"type": "ExecutePipeline",
 											"dependsOn": [],
 											"policy": {
@@ -3882,7 +3882,7 @@
 									"value": "KAFKA",
 									"activities": [
 										{
-											"name": "Execute_PL_INGEST_KAFKA",
+											"name": "EP_KAFKA_18",
 											"type": "ExecutePipeline",
 											"dependsOn": [],
 											"policy": {
