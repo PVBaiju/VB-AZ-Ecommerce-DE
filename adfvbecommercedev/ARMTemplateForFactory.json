@@ -3625,23 +3625,23 @@
 												"waitOnCompletion": true,
 												"parameters": {
 													"p_job_id": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.job_id",
 														"type": "Expression"
 													},
 													"p_source_path": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_path",
 														"type": "Expression"
 													},
 													"p_file_pattern": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.file_pattern",
 														"type": "Expression"
 													},
 													"p_target_container": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_container",
 														"type": "Expression"
 													},
 													"p_target_path": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_path",
 														"type": "Expression"
 													},
 													"p_pipeline_run_id": {
@@ -3649,7 +3649,7 @@
 														"type": "Expression"
 													},
 													"p_source_container": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_container",
 														"type": "Expression"
 													}
 												}
@@ -3676,31 +3676,31 @@
 												"waitOnCompletion": true,
 												"parameters": {
 													"p_job_id": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.job_id",
 														"type": "Expression"
 													},
 													"p_source_container": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_container",
 														"type": "Expression"
 													},
 													"p_source_path": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_path",
 														"type": "Expression"
 													},
 													"p_file_pattern": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.file_pattern",
 														"type": "Expression"
 													},
 													"p_sheet_name": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].sheet_name",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.sheet_name",
 														"type": "Expression"
 													},
 													"p_target_container": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_container",
 														"type": "Expression"
 													},
 													"p_target_path": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_path",
 														"type": "Expression"
 													},
 													"p_pipeline_run_id": {
@@ -3731,27 +3731,27 @@
 												"waitOnCompletion": true,
 												"parameters": {
 													"p_job_id": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.job_id",
 														"type": "Expression"
 													},
 													"p_source_container": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_container",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_container",
 														"type": "Expression"
 													},
 													"p_source_path": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].source_path",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.source_path",
 														"type": "Expression"
 													},
 													"p_file_pattern": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].file_pattern",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.file_pattern",
 														"type": "Expression"
 													},
 													"p_target_container": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_container",
 														"type": "Expression"
 													},
 													"p_target_path": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_path",
 														"type": "Expression"
 													},
 													"p_pipeline_run_id": {
@@ -3782,19 +3782,19 @@
 												"waitOnCompletion": true,
 												"parameters": {
 													"p_job_id": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].job_id",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.job_id",
 														"type": "Expression"
 													},
 													"p_api_endpoint": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].api_endpoint",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.api_endpoint",
 														"type": "Expression"
 													},
 													"p_target_container": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_container",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_container",
 														"type": "Expression"
 													},
 													"p_target_path": {
-														"value": "@activity('Lookup_Get_Job_Metadata').output.value[0].target_path",
+														"value": "@activity('Lookup_Get_Job_Metadata').output.firstRow.target_path",
 														"type": "Expression"
 													},
 													"p_pipeline_run_id": {
