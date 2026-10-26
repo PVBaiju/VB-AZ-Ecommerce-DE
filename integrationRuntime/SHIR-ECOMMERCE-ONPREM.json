@@ -1,7 +1,0 @@
-{
-	"name": "SHIR-ECOMMERCE-ONPREM",
-	"properties": {
-		"type": "SelfHosted",
-		"description": "On-premises SQL Server connectivity"
-	}
-}
