@@ -12,7 +12,11 @@
 			"trustServerCertificate": true,
 			"authenticationType": "SQL",
 			"userName": "vb-admin",
-			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQDU1NjdERTY0LTE1RDktNEYyRi04RThCLTA3RDQ0QkUyQzM5QV8xYzA2ZGU2ZC0zMjAzLTQwZjItOTIzNS1kNTY4NmUxOGI5YzMiDQp9"
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI1NzBhNjQ0Mi1kNGFkLTQ3ZTQtOTY0YS00Mjc1YmM5MjBmMDciLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "SHIR-ECOMMERCE-ONPREM",
+			"type": "IntegrationRuntimeReference"
 		}
 	}
 }
