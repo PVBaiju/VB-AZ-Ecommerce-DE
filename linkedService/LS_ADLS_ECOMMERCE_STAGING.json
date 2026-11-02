@@ -1,0 +1,10 @@
+{
+	"name": "LS_ADLS_ECOMMERCE_STAGING",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://adlsvbecommercestg.dfs.core.windows.net/"
+		}
+	}
+}
