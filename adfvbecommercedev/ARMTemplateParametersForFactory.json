@@ -29,6 +29,9 @@
 		"LS_ADLS_ECOMMERCE_properties_typeProperties_url": {
 			"value": "https://adlsvbecommercedev.dfs.core.windows.net/"
 		},
+		"LS_ADLS_ECOMMERCE_STAGING_properties_typeProperties_url": {
+			"value": "https://adlsvbecommercestg.dfs.core.windows.net/"
+		},
 		"LS_AZSQL_CONTROL_properties_typeProperties_server": {
 			"value": "sql-vb-ecommerce-dev-01.database.windows.net"
 		},

@@ -39,6 +39,10 @@
 			"type": "string",
 			"defaultValue": "https://adlsvbecommercedev.dfs.core.windows.net/"
 		},
+		"LS_ADLS_ECOMMERCE_STAGING_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://adlsvbecommercestg.dfs.core.windows.net/"
+		},
 		"LS_AZSQL_CONTROL_properties_typeProperties_server": {
 			"type": "string",
 			"defaultValue": "sql-vb-ecommerce-dev-01.database.windows.net"
@@ -133,14 +137,14 @@
 					"LS_SNOWFLAKE_ECOMMERCE_password": {
 						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_password')]"
 					},
-					"LS_SQLSERVER_ECOMMERCE_ONPREM_password": {
-						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_password')]"
-					},
 					"Ecommerce_REST_API_properties_typeProperties_url": {
 						"value": "[parameters('Ecommerce_REST_API_properties_typeProperties_url')]"
 					},
 					"LS_ADLS_ECOMMERCE_properties_typeProperties_url": {
 						"value": "[parameters('LS_ADLS_ECOMMERCE_properties_typeProperties_url')]"
+					},
+					"LS_ADLS_ECOMMERCE_STAGING_properties_typeProperties_url": {
+						"value": "[parameters('LS_ADLS_ECOMMERCE_STAGING_properties_typeProperties_url')]"
 					},
 					"LS_AZSQL_CONTROL_properties_typeProperties_server": {
 						"value": "[parameters('LS_AZSQL_CONTROL_properties_typeProperties_server')]"
@@ -171,15 +175,6 @@
 					},
 					"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_host": {
 						"value": "[parameters('LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_host')]"
-					},
-					"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server": {
-						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server')]"
-					},
-					"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_database": {
-						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_database')]"
-					},
-					"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_userName": {
-						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_userName')]"
 					}
 				}
 			},
@@ -198,6 +193,18 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"LS_SQLSERVER_ECOMMERCE_ONPREM_password": {
+						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_password')]"
+					},
+					"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server": {
+						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server')]"
+					},
+					"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_database": {
+						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_database')]"
+					},
+					"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_userName": {
+						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_userName')]"
 					}
 				}
 			},

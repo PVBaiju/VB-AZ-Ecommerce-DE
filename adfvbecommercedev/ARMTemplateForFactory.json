@@ -39,6 +39,10 @@
 			"type": "string",
 			"defaultValue": "https://adlsvbecommercedev.dfs.core.windows.net/"
 		},
+		"LS_ADLS_ECOMMERCE_STAGING_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://adlsvbecommercestg.dfs.core.windows.net/"
+		},
 		"LS_AZSQL_CONTROL_properties_typeProperties_server": {
 			"type": "string",
 			"defaultValue": "sql-vb-ecommerce-dev-01.database.windows.net"
@@ -4367,6 +4371,29 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_STAGING_PARQUET')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_ECOMMERCE_STAGING",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_ECOMMERCE_STAGING')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_REST_API_SOURCE')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -4609,6 +4636,19 @@
 				"type": "AzureBlobFS",
 				"typeProperties": {
 					"url": "[parameters('LS_ADLS_ECOMMERCE_properties_typeProperties_url')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_ADLS_ECOMMERCE_STAGING')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('LS_ADLS_ECOMMERCE_STAGING_properties_typeProperties_url')]"
 				}
 			},
 			"dependsOn": []

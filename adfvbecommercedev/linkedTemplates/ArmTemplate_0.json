@@ -27,10 +27,6 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_SNOWFLAKE_ECOMMERCE'"
 		},
-		"LS_SQLSERVER_ECOMMERCE_ONPREM_password": {
-			"type": "secureString",
-			"metadata": "Secure string for 'password' of 'LS_SQLSERVER_ECOMMERCE_ONPREM'"
-		},
 		"Ecommerce_REST_API_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://dummyjson.com"
@@ -38,6 +34,10 @@
 		"LS_ADLS_ECOMMERCE_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://adlsvbecommercedev.dfs.core.windows.net/"
+		},
+		"LS_ADLS_ECOMMERCE_STAGING_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://adlsvbecommercestg.dfs.core.windows.net/"
 		},
 		"LS_AZSQL_CONTROL_properties_typeProperties_server": {
 			"type": "string",
@@ -78,18 +78,6 @@
 		"LS_SNOWFLAKE_ECOMMERCE_properties_typeProperties_host": {
 			"type": "string",
 			"defaultValue": "PYKNTMV-GO87004.snowflakecomputing.com"
-		},
-		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server": {
-			"type": "string",
-			"defaultValue": "."
-		},
-		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_database": {
-			"type": "string",
-			"defaultValue": "ECommerceSource"
-		},
-		"LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_userName": {
-			"type": "string",
-			"defaultValue": "vb-admin"
 		}
 	},
 	"variables": {
@@ -120,6 +108,19 @@
 				"type": "AzureBlobFS",
 				"typeProperties": {
 					"url": "[parameters('LS_ADLS_ECOMMERCE_properties_typeProperties_url')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_ADLS_ECOMMERCE_STAGING')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('LS_ADLS_ECOMMERCE_STAGING_properties_typeProperties_url')]"
 				}
 			},
 			"dependsOn": []
@@ -554,6 +555,29 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_STAGING_PARQUET')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_ECOMMERCE_STAGING",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_ECOMMERCE_STAGING')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_REST_API_SOURCE')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -699,53 +723,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS_SNOWFLAKE_ECOMMERCE')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DS_SQL_CONTROL')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_AZSQL_CONTROL",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AZSQL_CONTROL')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LS_SQLSERVER_ECOMMERCE_ONPREM')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "OnPrem Migration ",
-				"annotations": [],
-				"type": "SqlServer",
-				"typeProperties": {
-					"server": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_server')]",
-					"database": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_database')]",
-					"encrypt": "mandatory",
-					"trustServerCertificate": true,
-					"authenticationType": "SQL",
-					"userName": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_properties_typeProperties_userName')]",
-					"password": {
-						"type": "SecureString",
-						"value": "[parameters('LS_SQLSERVER_ECOMMERCE_ONPREM_password')]"
-					}
-				},
-				"connectVia": {
-					"referenceName": "SHIR-ECOMMERCE-ONPREM",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/SHIR-ECOMMERCE-ONPREM')]"
 			]
 		}
 	]
